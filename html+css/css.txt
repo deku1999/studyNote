@@ -1,0 +1,58 @@
+-1：伪类选择器
+这里主要介绍下:first-child
+例如p:first-child{color:red;}，这个语句选择的其实是先找到p元素，再看它的父元素的第一个子元素是不是p，如果是就渲染它。
+
+0.属性选择器（平时没咋用过，不过还算有用要记住）
+属性选择器可以根据元素的属性及属性值来选择元素。
+简单属性选择：
+如果希望选择有某个属性的元素，而不论属性值是什么，可以使用简单属性选择器。例如*[title]{color:red},a[href]{color:red}等，这里没有指定具体属性值，不过也要有值，而不是说可以具有这个属性就行
+具体属性选择：
+即指定属性值来进行选择，如[href="a.jpd]，input[name="xx"]等，当然可以多个属性-值选择器进行叠加来进一步缩小范围，例如a[href="http://www.w3school.com.cn/"][title="W3School"] {color: red;}等。注意这里的属性值就是具体值，不能包含空格那种，例如有一个元素为<div class="a b c"></div>这里有三个类，如果是用类选择器随便指定一个都能选中，但是如果写成div[class="a"]这种是不行的，必须要这样写div[class="a b c"]
+根据部分属性值选择：
+上面说了属性值必须要具体，不过也有不具体的写法例如上面的div写成，div[class~="a"]{color:red;}这样class属性中只要包含a就会被选中。即使用波浪号（~）在属性名与等号间。
+
+1.class和id：同一个页面中不能出现两个相同的id，不过不同页面可以。同一页面可以出现多个相同的class。id就像身份证号，class就像姓名
+
+2.字体样式：
+	字体类型font-family，如font-family：微软雅黑，Arial，Times，New Roman
+	字体大小font-size，一般用px表示
+	字体粗细font-weight，属性有normal（默认），lighter（较细），bold（较粗），bolder（很粗）
+	字体斜体样式font-style，normal（默认值），italic（斜体，这是一个属性不是每个字体都具有），oblique（将没有italic属性的字体倾斜）
+
+3.段落样式：
+	text-decoration，下划线，删除线，顶划线。属性none（默认），underline（下划线），line-through（删除线），overline（删除线）
+	text-transform，文本大小写。none（默认），uppercase（转换成大写），lowercase（转换成小写），capitalize（将每个单词的首字母大写，其余无变化）
+	text-indent，首行缩进，缩进字体px的整数倍就是缩进整数个字
+	text-align，文字水平对齐，left（默认值，左对齐），center（居中对齐），right（右对齐），在除了inline属性的元素中定义
+	line-height,行高，主要用处就是line-height=height使单行文本垂直方向居中
+
+4.边框样式，border-style，常用两种为solid（实线），dashed（虚线）
+
+5.背景样式：
+	背景颜色：background-color
+	背景图像：
+	background-image：url（图像路径）;  
+	background-position：图像出现位置，可以用像素X  Y表示，x表示距离该元素左边Xpx，y表示距离该元素上面Ypx;也可以用关键字例如:top left;right center;bottom center；效果如英文所示
+	background-repeat：背景重复样式，repeat（默认值，表示在水平竖直方向都平铺），no-repeat（不平铺），repeat-x（水平方向平铺），repeat-y（竖直方向平铺）
+	background-attachment：背景固定样式，默认为scroll表示背景图像随对象滚动而滚动，fixed表示固定不动，（该属性在不同的浏览器中可能会有冲突）
+可以简写为：background:url(..) no-repeat 0 0这种
+
+6.图片样式：
+	图片大小，img标签可以直接设置
+	图片水平对齐，运用text-align可以实现，text-align只对行级元素生效带有inline的，在块级元素中定义
+	图片垂直对齐，vertical-align：定义行级元素相对于该元素的垂直对齐方式，一般也是在块级元素中定义
+
+7.列表样式：
+	ul无序列表，list-style-type:none(无符号），disc（默认值，实心圆），circle（空心圆），square（实心正方形）
+
+8.表格样式：
+	表格边框合并，border-collapse：separate（默认值，边框分开不合并），collapse（边框合并，如果相邻共用一个边框），该属性在tabel标签设置即可
+	表格边框间距，border-spacing：Xpx Ypx,x为横向间距，y为纵向间距
+	表格标题位置，caption-side：top（顶部），bottom（底部）
+
+9.浮动布局：
+	启用了浮动会产生浮动流，块级元素看不见他们，产生了bfc的元素以及带有inline的行级元素可以看见，块级元素中的文本或者图片等也算inline浮动元素可以识别。（注意启用浮动本身的元素是可以看见浮动元素的）。我们在使用浮动后一般是在父级div元素的after位元素中清除浮动。.x::after{display:"block"; content :""; clear:both;}。注意，不管是任何元素都可以设置浮动，并且设置完浮动后会将其自身转换为block元素
+
+10.定位布局
+	position:static（默认，静态定位一般js中用到）；relative（相对定位，相对于元素原来的位置进行定位）；fixed（固定定位，相对父级元素定位，没有父级就相对浏览器，定位后也是脱离正常文档流的）；absolute（同理fixed，绝对定位，设置了absolute的元素已经脱离了正常文档流）
+。任何元素设为absolute或fixed都会将其自身转换为block元素
