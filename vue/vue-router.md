@@ -292,6 +292,9 @@ children: [
   //返回上一页，前提是不是通过replace方法进来的
   this.$router.back()
   this.$router.go(-1)
+  //前进一页
+this.$router.forward()
+  this.$router.go(1)
   ```
-
+  
   
