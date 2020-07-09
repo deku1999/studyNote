@@ -1,5 +1,13 @@
 # css
 
+## 一些补充
+
+- css中引入别的css文件
+
+```
+@import 'css文件路径'
+```
+
 ## 伪类选择器
 
 - first-child

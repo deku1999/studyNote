@@ -17,6 +17,76 @@ const test2 = debounce(test,200)
 test2()
 ```
 
+# 模块化
+
+- 这里介绍下common Js和es6的模块化
+
+## commonJS
+
+```
+//test.js，导出
+module.exports = {
+name :'robot'
+age: 18,
+job: 'fullStackEngineer'
+}
+//nedd.js，导入
+const userInfo = require('./test.js')
+console.log(userInfo.name) 	//robot
+```
+
+## es6
+
+- 导出
+
+  - 导出方式1，一整个对象导出
+
+  ```
+  export {
+  flag,sum
+  }
+  ```
+
+  - 导出方式2，一个一个导出
+
+  ```
+  export var num1 = 1000
+  export const obj = {age:18}
+  export function sum() {}
+  export class Person{}
+  ```
+
+  - 导出默认值，好处就是导入的时候可以重命名。不过一般一个js文件只能有一个默认导出，不然导入的时候会发生混乱。
+
+  ```
+  const address = "Beijing"
+  export default address
+  export default function() {}
+  export default {}
+  ```
+
+- 导入
+
+  - 一般导入
+
+  ```
+  import {flag,sum} from './test.js'
+  ```
+
+  - 导入默认值
+
+  ```
+  重命名address并导入
+  import addr from './add.js'
+  ```
+
+  - 统一导入，主要是为了方便普通的导出
+
+  ```
+  //将test文件中导出的全部包含在一个testInfo对象里，之后通过该对象就可以调用导出的值
+  import * as testInfo from './test.js'
+  ```
+
 # let与const
 
 - 传统的es6之前的版本中的var定义是个缺陷，因为它没有块级作用域，例如大括号里定义的变量外部也可以访问。它的作用域只能通过函数来加以限制。es6中，用let定义的变量是有类似if，for这样的块级作用域了，就不用有时再借用闭包来解决问题。

@@ -1,5 +1,21 @@
 # js
 
+## 补充
+
+- 回调函数的this指向window
+- var声明变量有变量提升
+
+```
+var a = 20
+function f() {
+var b = 2*a
+var a = 10
+console.log(b) 
+}
+f()  //NAN
+因为函数内部var a的时候提升了a，但是没有赋值，所以这时计算b的时候并不会去全局找a而是直接用函数里的undefined的a，因为2*一个undefined，所以结果为NAN
+```
+
 ## 基本概念
 
 ### 语法

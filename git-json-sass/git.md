@@ -49,6 +49,12 @@ git add.代表添加当前目录下所有文件
 git commit -m"注释内容"
 ```
 
+### 查看远程仓库
+
+```
+git remote -v
+```
+
 ## git版本回退
 
 ### 查看版本
@@ -64,6 +70,8 @@ git log --pretty=oneline
 git reset --hard 提交编号
 ```
 
+- 回退的本质是回退的版本库的内容，所以有一些大改变可以都通过git记录方便回退。
+
 ### 小结
 
 - 回到过去之后，要想再回到之前的最新的版本的时候，需要使用指令区查看历史操作，以得到最新的commit id
@@ -77,6 +85,19 @@ git reset --hard 提交编号
 - 在写回退指令的时候commit id不用写全，git可以自动识别，不过至少需要写前4位
 
 ## github远程仓库的使用
+
+### 添加远程仓库
+
+```
+git remote add origin git地址
+```
+
+- 当出现报错远程仓库源已存在时，可以先删掉当前的再添加新的
+
+```
+//删除当前的
+git remote re origin
+```
 
 ### 基于http协议
 
@@ -115,6 +136,38 @@ ssh-keygen -t rsa -C "注册邮箱"
 ### 小记
 
 每天上班第一件事应该就是git pull，下班最后一件事就是git push。
+
+#### git push小结
+
+- 如果远程仓库什么文件都没有，那它就没有master分支，所以直接git push就会出错。这时可以如下图，这样即使没有该分支也会被创建出来。
+  - 这里的origin是可以替换成具体的当有多个远程仓库时，直接用origin那意思就是用origin代表的仓库
+  - 同理，这里的master也是可以替换的
+
+```
+git push -u origin master
+```
+
+- 在默认情况下，git push时一般会上传到origin下的master分支上，然而当repository和branch过多，而又没有设置关联时，git就会产生疑问，因为它无法判断你的push目标。这时便会报错如下图
+
+![image-20200707235310357](C:\Users\22140\Desktop\web-study\note\assets\img\image-20200707235310357.png)
+
+解决办法为：
+
+1.就是上述的
+
+```
+git push -u origin master
+//视情况替换origin与master
+```
+
+2.下图
+
+```
+git push --set-upstream origin master
+//也是视情况替换origin与master
+```
+
+不过二者的区别是第一种即使分支不存在也会被创建并进行关联，而第二种则必须要保证存在该分支。
 
 ## 分支管理
 
