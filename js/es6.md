@@ -17,6 +17,19 @@ const test2 = debounce(test,200)
 test2()
 ```
 
+# 反引号字符串`
+
+- 反引号定义的字符串支持换行，可以更方便的拼接。
+
+```javascript
+var foo = `Hello hehe
+床前明月光
+疑似地上霜`
+console.log(foo)	//输出的结果就是排版的结果
+```
+
+- 在es6的`字符串中，可以使用${ }来引用变量，变量的值会被渲染进字符串中。
+
 # 模块化
 
 - 这里介绍下common Js和es6的模块化
