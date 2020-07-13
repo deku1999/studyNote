@@ -50,6 +50,21 @@
 
 - 不管是require中的路径，还是readFile这种路径，如果直接写`/`代表的就是当前文件所在磁盘的根目录。
 
+- ```javascript
+  //	index.js
+  fs.readFile('./a.txt')
+  这个readFile里面的路径是相对于执行node命令时所处的路径。
+  ```
+
+- 所以在文件操作中使用相对路径是不可靠的，需要转换为绝对路径。又因为绝对路径需要根据场景进行切换，所有我们选择用node的path模块join方法和`__dianame`结合使用组成绝对路径。
+- 补充：模块中的路径跟文件是不同的，不受影响，模块中的路径标识就是相对于当前文件模块，不受执行node命令所处路径影响。
+
+## node中的其他成员
+
+- 在每个模块中，除了`require`、`exprots`等模块相关api之外，还有两个特殊的成员
+  - `__dirname`，可以用来获取当前文件模块所属目录的绝对路径，不包括自身文件
+  - `__filename`，可以用来获取当前文件的绝对路径，包括自身文件
+
 # node特点
 
 - event-driven 事件驱动
@@ -280,6 +295,21 @@ fs.writeFile('./data/你好.md','大家好我是robot',function(error) {
 })	
 ```
 
+# path模块与文件处理
+
+## path模块常用方法
+
+- `path.basename，`获取路径中的文件名
+- `path.dirname`，获取路径中的目录名
+- `path.extname，`获取文件的后缀名
+- `path.isAbsolute`，判断一个路径是否为据对路径
+- `path.parse`，得到一个对象，包括root 根路径，dir 目录，base 包含后缀名的文件名，ext 后缀名，name 不包含后缀名的文件名
+- `path.join`，拼接路径的，可以传不限量的参数，当需要拼接路劲时就用它避免拼错
+
+```
+path.join('c:/a','b')	=>'c:\\a\\b'，这里是window系统的结果，需要对\进行转义
+```
+
 # node构建web服务器
 
 - 服务器负责干嘛
@@ -346,7 +376,7 @@ response.end(JSON.stringify(products))
 //Content-Type表示告知对方我给你发送的信息是什么类型
 //text/plain 就是普通文本
 //如果你发送的是html格式的字符串，则也要告诉浏览器我给发送的是text/html格式的内容
-resquest.setHeader('Content-Type','text/plain;charset=utf-8')
+response.setHeader('Content-Type','text/plain;charset=utf-8')
 ```
 
 ## 响应不同类型的文件
@@ -685,6 +715,8 @@ res.render('html模板名',{模板数据})
 app.set('views',render函数的默认路径)
 ```
 
+- 模板引擎有引用和继承两种方式来实现更好的代码复用。
+
 ## 路由模块封装
 
 ```javascript
@@ -717,3 +749,30 @@ app.use(router)
 
 - 自己查看文件夹代码
 
+## express中session用法
+
+- session默认是存储在服务器内存中的，服务器一重启session就会消失。真正的生产环境会把session进行持久化存储。
+
+- `npm install express-session`，然后通过require引入
+- 配置，一定要在app.use(router)之前
+- 使用，当我们把这个插件配置好之后，就可以通过`req.session.属性 = 值`来设置session，之后也可以通过同样方法来读取session值。
+
+```javascript
+var express = require('express')
+var session = require('express-session')
+var app = express()
+//	配置
+app.use(session({
+  secret: 'keyboard cat',	//配置加密字符串，增加安全性的
+  resave: false,
+  saveUninitialized: true	//无论你是否使用session，都会默认直接给你分配一把钥匙。如果为false，则是只在存数据时才会给你分发钥匙。
+}))
+//	使用
+req.session.foo = 'bar'	//添加
+req.session.foo	//读取
+req.session.foo = null	//清除登录状态
+```
+
+## md5加密
+
+- 可以在github上搜索相关项目，通过npm安装后可以对密码进行加密。
