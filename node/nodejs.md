@@ -14,8 +14,8 @@
 
 - dir：列出当前目录下的所有文件；
 - cd+目录名：切换目录；
-- md+文件夹名：当前目录创建文件夹；
-- rd+文件名：删除文件夹；
+- mkdir+文件夹名：当前目录创建文件夹；
+- rmdir+文件名：删除文件夹；
 - 想进哪个盘直接盘符加冒号就行，例如e：即可进入e盘。
 - cls，将cmd清屏
 
@@ -234,6 +234,12 @@ npm config list
 - 这个文件可以通过`npm init`的方式初始化创建。
 - 建议执行`npm install 包名`的时候，都加上`--save`，这样会在package.json中写入依赖信息。
 - 如果你的`node_modules`删除了也不用担心，我们只需要重新执行`npm install`就会自动把`package.json`中的所有依赖项都下载回来。
+
+## package.json和package-lock.json
+
+- npm5之前是不会有`package-lock.json`这个文件的。npm5以后加入了文件，当你安装包的时候，都会生成或更新该文件。
+- `package-lock.json`这个文件会保存`node_modules`中所有包的信息，这样重新`npm install`的时候的速度就会快很多。
+- `package-lock.json`这个文件还有个文件锁的功能，假如`package.json`文件中有个依赖包，如果重新`npm install`那么会自动安装该依赖的最新版，但是如果有这个文件就会锁定该文件里文件的版本，从而解决有时因版本冲突带来的问题。
 
 # node文件处理
 
@@ -706,4 +712,8 @@ var app = express()
 //把路由容器挂载到app服务器中
 app.use(router)
 ```
+
+## crud简单实现
+
+- 自己查看文件夹代码
 

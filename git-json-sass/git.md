@@ -133,6 +133,22 @@ ssh-keygen -t rsa -C "注册邮箱"
 
 这样可以直接通过git进行操作，不用像http那种方式进行验证
 
+### 远程仓库克隆的那些事
+
+- 默认`git clone`克隆的是master分支下的内容，通过`git checkout`指定的分支名可以查看其他分支下的内容。
+
+- 克隆指定的tag
+
+  ```
+  git clone -b tag标签 git地址
+  ```
+
+- 克隆指定分支的代码
+
+  ```
+  git clone -b 分支名 git地址
+  ```
+
 ### 小记
 
 每天上班第一件事应该就是git pull，下班最后一件事就是git push。
@@ -194,7 +210,10 @@ git checkout 分支名
 ### 删除分支
 
 ```
+//	删除本地分支
 git branch -d 分支名
+//	删除远程分支
+git push origin -d 分支名
 ```
 
 ### 合并分支
@@ -227,6 +246,15 @@ git push --tags
 
 ```
 git checkout tag名
+```
+
+### 删除tag
+
+```
+//	删除本地tag
+git tag -d tag名
+//	删除远程tag
+git push origin :refs/tags/tag名
 ```
 
 ## 忽略文件

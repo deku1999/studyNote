@@ -263,8 +263,9 @@ resolve('hello world')
 // reject('error message')
 },2000)
 }).then(res => {
+    console.log(res)	//hello world
     return Promise.resolve(res+'222')
-}).then(res => {console.log('第二层')})
+}).then(res => {console.log(res)})	//hello world222
 ```
 
 2. 直接return 数据
@@ -277,7 +278,23 @@ resolve('hello world')
 },2000)
 }).then(res => {
     return res+'222'
-}).then(res => {console.log('第二层')})
+}).then(res => {console.log(res)})	//hello world222
+```
+
+3.return一个promise实例，这种跟前两种不同，它的下一个then的参数是返回的promise实例里的resolve参数。而不是promise实例。
+
+```javascript
+new Promise((resolve,reject) => {
+setTimeout(() =>{
+resolve('hello world')
+// reject('error message')
+},2000)
+}).then(res => {
+    console.log(res)	//hello world
+    return new Promise((resolve,reject) =>{...})
+}).then(res => {
+    return new Promise((resolve,reject) =>{....})
+})
 ```
 
 ### reject简洁写法

@@ -124,6 +124,17 @@ f()  //NAN
   for (var a in window){document.write(a)}
   ```
 
+#### for-of
+
+- 直接遍历数组的元素值，一些情况下比较方便
+
+```javascript
+var items = [1,3,4,5,6]
+for(item of items) {
+	console.log(item)	//1,3,4,5,6
+}
+```
+
 #### with
 
 - 将代码的作用域设置到一个特定的对象中
@@ -220,9 +231,11 @@ f()  //NAN
 | filter()      | 返回数组项在在一定条件下为true的项并将它们组成一个数组返回。例如arrayA.filter(item=> item>5 ) |
 | map()         | 对数组的每一项都进行一个操作对将操作后的结果返回。例如arrayA.map(item => item*2) |
 | reduce()      | 归并方法，将数组的每一项都进行相应操作并将得到的结果进行累加。例如arrayA.reduce((pre,n) => {return pre+n*n}，0)。这个函数的意义是将数组的每项进行平方并将它们的平方和返回。0是pre的初始值，之后每遍历一次得到的结果都将作为下次的pre值。 |
-| forEach       | 对数组的每一项进行某个操作，不过与map方法不同它没有返回值。比较典型的应用就是可以对由数组项是对象的数组每一个对象进行相应的操作，因为对象项保存的是地址，对它内部的属性进行修改并不会改变地址值。例如arrayA.forEach(item => {item.checked = false}) |
+| forEach       | 列出数组的每一项元素，不过与map方法不同它没有返回值。比较典型的应用就是可以对由数组项是对象的数组每一个对象进行相应的操作，因为对象项保存的是地址，对它内部的属性进行修改并不会改变地址值。例如arrayA.forEach(item => {item.checked = false}) |
+| find          | 参数为一个回调函数，返回条件为true的第一个值。例Arraya.find(item => { return item > 5} ) ，这样会返回数组中大于五的第一个值 |
+| findIndex     | 跟find基本一样，不过返回的是下标，但是如果有多个符合要求也以第一个为准。 |
 
-- filter，map，reduce，forEach都是数组的高级方法，参数都是一个函数，并会对数组的每一项都调用函数。这些方法都不会改变数组中包含的值。
+- filter，map，reduce，forEach都是数组的高级方法，参数都是一个函数，并会对数组的每一项都调用函数。这些方法都不会改变数组中包含的值。但是注意当数组元素是引用类型时，就代表不会改变元素的地址值，但是对地址上面的属性进行修改则是可以得。
 
 ### Date类型
 
@@ -307,7 +320,7 @@ f()  //NAN
 | toLowerCase,toUpperCase    | 大小写转换                                                   |
 | localeCompare              | 比较两个字符串，如果小于返回-1，相等返回0，大于返回1         |
 | match,search,replace,split | 字符串模式匹配，参见p127                                     |
-| replace                    | 替换字符串的特定字符，返回替换后的字符串。例，var str = 'absfacd' var c = str.replace('a','h')，第二个参数也可以传一个正则表达式 |
+| replace                    | 替换字符串的特定字符，返回替换后的字符串。例，var str = 'absfacd' var c = str.replace('a','h')，默认只会替换第一个。可以第一个参数传正则表达式来实现全局替换。 |
 
 ### 单体内置对象
 
