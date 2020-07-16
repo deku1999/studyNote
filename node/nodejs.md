@@ -776,3 +776,73 @@ req.session.foo = null	//清除登录状态
 ## md5加密
 
 - 可以在github上搜索相关项目，通过npm安装后可以对密码进行加密。
+
+# 中间件
+
+## 中间件概念
+
+- 从客户端请求到服务端发送响应的过程，中间的一系列处理环节，把它分步骤来处理，每个步骤处理一些事，这个步骤就是中间处理环节。处理环节的方法就叫中间件。
+
+## express中间件
+
+- 中间件本身是一个方法，该方法接收三个参数，`request` 请求对象，`response` 响应对象，`next` 下一个中间件，next参数是可选的。第一个中间件执行的时候，不调`next`方法是不会向下一个中间件走的
+
+- 在express中，对中间件有几种分类
+
+  - 不关心请求路径和请求方法的中间件，也就是说任何请求都会进入这个中间件。
+
+    ```javascript
+    app.use(function (req,res,next){	//无论什么请求都会进来
+    	console.log('请求进来了')
+    })
+    ```
+
+  - 以`/xxx`开头的中间件
+
+    ```javascript
+    app.use('/a',function (req,res,next){	//无论什么请求都会进来
+    	console.log('只有/a开头的请求才会进来')
+        //例如/a/b/c
+        console.log(req.url)   //打印的结果是/b/c，会将/a过滤掉，但是传给后面的还是原样的url
+        next()			
+    })
+    ```
+
+  - 除了以上中间件之外，还有一种最常用的严格匹配请求方法和请求路径的中间件，例如`router.get`，`router.post`，也有next参数，不过一般我们都没调用。
+
+- 由上图几种中间件分类可知，我们可以对一个请求进行多次中间件处理来达到我们想要的效果。
+
+## 配置中间件
+
+- 配置404界面
+
+```javascript
+//	顺序处理很重要，必须要配置在其他路由后面，这样当前面的路由都不匹配时便渲染404界面
+app.use(router)
+app.use(function(req,res,next) {
+    res.render('404.html')
+})
+```
+
+- 配置服务器错误界面
+
+```javascript
+//	顺序也很重要，而且因为具有err参数，当next(err)时只会去找带有err参数即四个参数的中间件
+//	所以会跳过404中间件，所以不必担心服务器错误响应被404截取的问题
+//	router.js
+router.get('/',function(req,res,next) {
+    fs.readFile('./sjlfj.dsfjl',function (err,data) {
+        if(err){
+            return next(err)
+        }
+    })
+})
+//	app.js
+app.use(function(err,req,res,next) {
+    res.status(500).json({
+        err_code: 500,
+        message: err.message
+    })
+})
+```
+
