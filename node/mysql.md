@@ -36,7 +36,7 @@ connection.end()
 - 枚举类型（enum），枚举类型规定了只能填枚举出的几个类型
 - 集合类型（set），集合类型规定了只能填集合类型中的任意组合
 
-# mysql常用名词定义
+# mysql常用属性定义
 
 ## 主键与外键
 
@@ -67,7 +67,49 @@ connection.end()
   - 就是说给多列都设置了外键约束,一般适用于用第三张表去映射另外两张表中存在的相互关系
   - 根据情况来确定是否使用联合唯一索引
 
-## 唯一索引
+## 索引
+
+- 索引需要建立额外的文件保存特殊的数据结构，需要占用硬盘空间。
+
+- 索引查询快，插入更新删除慢
+- 还有两个不是真实的索引，即索引名词
+  - 覆盖索引，在索引文件中直接获取数据
+  - 索引合并，把多个单列索引合并使用
+
+- 创建索引之后需要命中索引，即如果使用方法不对那么将无法调用索引查找。
+  - 例如，like '%xx'，最好避免用这个，真正的项目开发中会有第三方工具
+  - 避免调用函数，函数会将数据库所有的数据都操作一遍也比较慢
+  - 与or结合可能也会无法命中索引
+  - 传入的类型要一致，不然内部还有进行转换也会拖慢速度
+  - 普通的索引使用`!=`时不会走索引，主键仍然会。类似的`>`，普通的索引也不会走，主键会。
+  - 当根据索引排序的时候，选择的映射如果不是索引那么也不会走索引。当然主键也是例外的
+  - 还有组合索引的最左前缀，下面组合索引中有介绍
+
+- 我们应该对频繁查找的列建立索引，而不是一味的建立索引
+
+```
+//普通索引
+create index 索引名称 on 表名(列名)		
+drop index 索引名称 on 表名		
+
+//唯一索引
+create unique index 索引名称 on 表名(列名)		
+drop unique index 索引名称 on 表名
+
+//联合索引
+create unique index 索引名称 on 表名(列名，列名。。)		
+drop unique index 索引名称 on 表名
+```
+
+### 普通索引
+
+- 加速查找
+
+### 主键索引
+
+- 加速查找，不能为空，不能重复
+
+### 唯一索引
 
 - 约束(不能重复)，加速查找。唯一索引跟主键不同，唯一索引可以为空因为这样也不算重复，主键不行
 
@@ -86,6 +128,30 @@ xx int,
 unique uq1 (num,xx) )
 ```
 
+### 联合索引（多列）
+
+- 联合主键索引，联合唯一索引，联合普通索引
+- 联合索引遵循最左前缀匹配，即定义了组合索引后进行查找时，开头的列必须是定义的时候的最左列
+
+```
+create index ix_name on userinfo(name,email)	//创建联合索引
+select * from userinfo where name='alex' 	//√
+select * from userinfo where name='alex' and email='xx@qq.com' 		//√
+select * from userinfo where email="xx@qq.com"		//×
+```
+
+### 其他注意事项
+
+- 避免使用select *
+- count(1)或count(列)代替count(*)
+- 创建表时尽量使用char代替varchar，而且varchar要尽量放在列的后面
+- 索引散列值（重复少）不适合建索引，例如性别就不合适
+- 表的字段顺序固定长度的字段优先
+- 组合索引代替多个单列索引（经常使用多个条件查询时）
+- 尽量使用短索引
+- 使用连接`join`来代替子查询
+- 连表时注意条件类型需一致
+
 ## 自增列
 
 - 自增列
@@ -100,6 +166,37 @@ unique uq1 (num,xx) )
     set session auto_increment_increment=2		//设置会话步长
     set session auto_increment_offset = 10		//设置步长的起始值
     ```
+
+## 分组
+
+- 对于某列的重复值进行计数，例如计算专业为计算机的人一共有多少
+
+- 分组有几个聚合函数，max：取合并的最大值；min：取合并的最小值；count：计数；还有两个sum（求和，avg（求平均值）
+
+```
+//用聚合函数进行part_id重复的计数
+select count(id),part_id from tb group by part_id	
+//如果对于聚合函数进行二次筛选，必须使用having，而不能使用where
+select count(id),part_id from tb group by part_id having count(id)>1	/✔
+select count(id),part_id from tb where id>5 group by part_id having count(id)>1	/✔
+```
+
+## 连表操作
+
+- 连表分为左右连表和上下连表
+
+- 就是将几张表中的信息联合查询然后进行展示，不过要记得外键关联，下例为左右连表
+
+```
+//用where连
+select * from userinfo,department where userinfo.part_id=department.id
+
+//通过left join 与on，推荐用这个，left join表示左边的表全部显示，如果是right join就是右边的全部显示。如果有数据没有与之对应的结果，那么就显示为null。如果是inner join就表示将null的那一行进行隐藏
+select * from userinfo left join department on userinfo.part_id=department.id
+//可以同时连接多张表，只要继续在后面写left join即可
+```
+
+- 上下连表，在查询语句中间加入`union`即可。默认的重复条数会自动去重，可以通过`union al`l来取消自动去重。
 
 # mysql常用命令
 
@@ -150,7 +247,7 @@ unique uq1 (num,xx) )
 
 ## 操作行
 
-增，删，改一般就这几种，不过查比较多样
+增，删，改一般就这几种，不过查比较多样。
 
 - 增
 
@@ -167,7 +264,7 @@ unique uq1 (num,xx) )
   - 将t1表中所有行的age列都变为18，`update t1 set age=18``
   - 同上，不过加上了age>18的限制条件，`update t1 set age=18 where age=17`
 
-- 查
+- 查，查询出来的结果可以作为一张临时表以让别的条件继续在它基础上进行查询。
 
   - 查找所有列的内容，`select * from 表名`，查看特定列只需将*换成列名即可
 
@@ -206,7 +303,218 @@ unique uq1 (num,xx) )
     select * from tb	//默认是从前到后排
     select * from tb order by id desc   //按照id从大到小排
     select * from tb order by id asc	//按照id从小到大排
+    select * from tb order by id asc，age desc	//可以传多个条件进行组合排序来处理重复情况
     ```
+## 查询扩展
 
-    
+- 例如，最小值大于20的显示出来，小于的显示0，可以这样写
 
+```
+case when min(num) <20 then 0 else min(num) end  
+```
+
+- mysql中的三元运算，例如`avg(if(isnull(score.num),0,score.num))`
+
+## 备份sql文件
+
+- 除了使用navicat这种图形化界面进行转存外，也可以用命令行来进行存储。
+
+```
+
+//导出现有数据库数据
+备份：数据表结构+数据
+mysqldump -u root db1>db1.sql -p
+备份：数据表结构
+mysqldump -u root -d db1>db1.sql -p
+
+//导入数据库数据，需要先自行创建数据库
+create database db5
+mysqldump -u root -d db5<db1.sql -p
+```
+
+# mysql更高级点用法
+
+## 视图
+
+- 有时我们在使用过程中，一些临时表会频繁被使用，这时我们可以给它起个别名，又称给它建立个视图
+- 视图可以修改，需要改sql语句即可。
+
+```
+create view 视图名 as sql语句	//创建视图
+drop view 视图名称		//删除视图
+```
+
+## 触发器
+
+- 触发器就是在我们执行某次操作时，它可以给我们在执行前，执行后分别再自动执行其余的操作。
+- 触发器没有查询类型的，只有增，删，改。
+
+```
+delimiter //
+create trigger t1 before insert on student for each row
+begin
+	//new代指新数据，old代指老数据，当删除的时候可以取出
+	insert inot teacher(tname) values('王老师')/values(new.sname);	
+end	//
+delimiter ;
+```
+
+## 函数
+
+mysql中有不少内置函数来辅助我们对数据进行处理。
+
+- 内置函数
+  - 例如，sum，DATE_FORMAT等
+- 自定义函数
+
+```
+create function f1(
+i1 int,
+i2 int)
+returns int
+begin
+	//函数体
+	declare num int;
+	set num = i1+i2;
+	return (num)
+end
+delimiter
+//调用
+select f1(1,100);
+```
+
+## 存储过程
+
+### 普通使用
+
+- 将mysql上一堆sql语句定义一个别名，对它进行调用，这一般就叫存储过程
+- 存储过程一般是没有返回值的，有一种变相的返回值用法就是用out，一般是用out来判断执行的过程是否成功。
+
+```
+//简单定义
+create procedure p1()
+begin
+	select * from student
+	insert into teacher(tname) values('ct')
+end;
+call p1()	//调用存储过程
+
+//传参定义，参数定义有in，out，inout三种类型
+create procedure p1(
+in n1 int,
+in n2 int
+)
+begin
+	select * from student where sid>n1
+end;
+call p1(12,2)
+
+//修改全局变量,out类型在存储过程拿不到传入的值，仅能对它进行修改。inout就是既有in功能又有out功能
+create procedure p1(
+in n1 int,
+out n2 int
+)
+begin
+	set n2 = 123123
+	select * from student where sid>n1
+end;
+set @v1 = 0;	//创建了一个session级别的变量
+call p1(12,@v1);
+select @v1;
+```
+
+### 支持事务操作
+
+- 就是处理正常的一系列sql操作时，如果出现异常要对它进行一定的处理
+
+```
+create procedure p1(
+out status_code tinyint
+)
+begin
+	declare exit handler for sqlexception	//声明sql异常
+	begin
+		set status_code = 1
+		rollback	//出错回滚
+	end
+start transaction	//开始事务
+	delete from tb1
+	insert into tb2(name) values('seven')
+commit
+set status_code = 2
+end;
+set @v1 = 0;	//创建了一个session级别的变量
+call p1(@v1);
+select @v1;
+```
+
+### 存储过程与游标结合
+
+- 游标一般就是指mysql里的循环操作
+
+```
+create procedure p2()
+begin
+	declare row_id int
+	declare row_number int
+	declare done int default false
+	declare temp int
+	declare my_cursor cursor for select id,num from tbA
+	declare continue handler for not found set done =  true
+	open my_cursor
+		circulation:loop
+			fetch my_cursor inot row_id,row_num
+			if done then
+				leave circulation
+			end if
+			set temp = row_id + row_number
+			insert into B(number) values(temp)
+		end loop circulaton
+	close my_cursor
+end;
+```
+
+## 慢日志查询
+
+- 为了观察哪些sql查询不太合格的日志文件
+
+```
+基于内存
+show varibles like '%query%'
+set global 变量名 = 值
+
+基于配置文件
+mysqld --defaults-file='D:\my.conf'
+my.conf内容：
+	slow_query_log = on
+	slow_query_log_file = D:/...
+注意：修改配置文件之后，需要重启服务
+```
+
+# mysql分页性能相关方案
+
+- 不让看，不是好的方案
+
+- 索引表中扫：`select * from  userinfo where id in (select id from userinfo limit 20000,10)`  
+
+- 理想方案，记录当前页最大或最小id，然后通过`where id>或者<`加上limit来取出数据。不能通过between and来获取，因为id不一定是连续的，即不要想着直接通过页码来取得id范围。 
+
+  - 页面只有上一页，下一页
+
+  ```
+#maxid
+  #minid
+  下一页：
+  	select * from userinfo where id > maxid limit 10
+  上一页：
+  	select * from userinfo where id < maxid order by id desc limit 10
+  ```
+  
+  - 上一页，192 193 ... 197这种，假如直接从192跳到了197页
+  
+  ```
+  select * from userinfo where id in (
+  select id from (select id from userinfo where id>max limit 30) as N order by N.id
+  desc limit 10
+  )
+  ```
