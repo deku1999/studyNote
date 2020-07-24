@@ -1,8 +1,36 @@
 # js
 
-## 补充
+## 高级技巧
 
 - 回调函数的this指向window
+- 防抖函数。短时间内频繁进行某个操作时可以设置延迟对它进行防抖处理使得执行的性能更高。
+
+```javascript
+//这样就对test函数进行了防抖处理，执行test2时以200ms为延迟进行检测
+function debounce(func,delay) {
+let timer = null
+return function(...args) {
+if(timer) 
+{clearTimetout(timer)}
+timer = setTimeout(() => {
+func.apply(this,args)},delay)
+}
+}
+const test2 = debounce(test,200)
+test2()
+```
+
+## 基本概念
+
+### 语法
+
+- js中的一切（变量，函数名和操作符都区分大小写）；
+- 标识符第一个字符不能是数字，后面的可以是字母，数字，下划线，$。标识符命名变量最好是字母间用下划线分隔，函数用驼峰命名法，即首单词首字母小写，后面的单词首字母大写；
+
+### 变量
+
+- 用var操作符定义的变量将成为该变量作用域中的局部变量。不用var声明，该变量会归window所有。
+
 - var声明变量有变量提升
 
 ```
@@ -15,27 +43,6 @@ console.log(b)
 f()  //NAN
 因为函数内部var a的时候提升了a，但是没有赋值，所以这时计算b的时候并不会去全局找a而是直接用函数里的undefined的a，因为2*一个undefined，所以结果为NAN
 ```
-
-- 当你采用了无分号代码风格的时候，只需要注意以下情况。
-
-  - 当一行代码是以`(`，`[`,`，开头时要在前面加个分号，不然可能会报错。例如
-
-  ```javascript
-  ;(function () {
-  console.log('括号开头前面加分号')
-  })()
-  ```
-
-## 基本概念
-
-### 语法
-
-- js中的一切（变量，函数名和操作符都区分大小写）；
-- 标识符第一个字符不能是数字，后面的可以是字母，数字，下划线，$。标识符命名变量最好是字母间用下划线分隔，函数用驼峰命名法，即首单词首字母小写，后面的单词首字母大写；
-
-### 变量
-
-用var操作符定义的变量将成为该变量作用域中的局部变量。不用var声明，该变量会归window所有。
 
 ### 数据类型
 
@@ -95,7 +102,7 @@ f()  //NAN
   >,<,<=,>=，返回布尔值
   ```
 
-#### 想等操作符
+#### 相等操作符
 
 - !=,==（相等与不等先转换数据类型再比较）
 - !==,===(全等与不全等只比较不转换)
@@ -289,7 +296,7 @@ for(item of items) {
   - length，表示函数希望接受的命名参数个数
   - prototype,是个对象都有后面会详细介绍
 - 函数方法
-  - apply()和call()，这两个方法的作用都是在特定的作用域中调用函数，本质上就是设置函数体内this的值。Es5还定义了一个bind()方法，也有差不多作用，p118。
+  - apply()和call()，这两个方法的作用都是在特定的作用域中调用函数，本质上就是设置函数体内this的值。Es5还定义了一个bind()方法，也有差不多作用，p118。举个bind例子，例如`obj.handleClick.bind(obj)`，将handleClick函数内部的this绑定为obj对象。
     - bind是用来声明时绑定，而apply和call是用来调用时绑定。
   - 两者都接收两个参数，第一个是在其中运行函数的作用域（是个对象），第二个参数函数如果有参数就需要添加，其中apply()方法是要么是arguments对象要么是Array实例，而call()方法则是需要将参数逐个列举出来。
 
@@ -513,6 +520,182 @@ son.prototype = proto
   {..})()
   ```
 
+## 异常与错误处理
+
+### try-catch
+
+- 与其他语言不同，这里catch语句必须传一个错误对象。
+
+```
+try{
+//可能会导致出错的代码
+} catch(err) {
+//在错误发生时的处理代码，err对象中保存着错误信息message属性
+}
+（可选的） finally {
+	finally语句一经使用，其代码无论如何都会执行。无论前面是否有return都没法影响它。
+	一般我们都是catch和finally二选一
+}
+```
+
+### 异常类型
+
+- Error，基类型，其他错误类型都继承自该类型。因此所有错误类型共享了一组相同的属性
+- EvalError，在错误使用eval()函数时被抛出。
+- RangeError，在超过数值范围时触发。
+- ReferenceError，找不到对象的错误。
+- SyntaxError，当我们把语法错误的js字符串传入eval（）函数时触发。
+- TypeError，即类型不符
+- URIError，使用encodeURI()或decodeURI时，URI格式不正确就会触发。
+
+### 抛出错误
+
+- 利用throw操作符进行手动抛出，这个值什么类型没有要求，不管是数字，字符串，还是对象都可以。
+
+```
+利用内置错误类型可以更真实的模拟浏览器错误，例如
+throw new Error('throw a exception')
+还可以利用原型链通过继承来创建自定义错误类型，不过要记得指定name和message属性
+function myError(message) {
+	this.name = 'myError'
+	this.message = message
+}
+myError.prototype = new Error()
+throw new myError('my message')
+```
+
+## JSON
+
+### json介绍
+
+- json是JavaScript的一个严格的子集，是一种数据格式
+
+- json的语法可以表示以下三种类型的值
+
+  - 简单值：使用与js相同的语法，可以在JSON中表示字符串，数值，布尔值和null。不过不支持undefined
+
+    ```
+    例如下面都是有效的
+    5
+    "hello world" //字符串必须要用双引号
+    ```
+
+  - 对象：作为一种复杂的数据类型，表示的是一组无序的键值对儿。而每个键值对儿中的值可以是简单值，也可以是复杂的数据类型的值。（注意：对象中的属性名必须用双引号包裹）
+  - 数组：数组也是一种复杂的数据类型，表示一组有序的值得列表。可以通过数值索引来访问其中得值。数组的值也可以是任意类型（简单值，对象或数组）。
+
+### 解析与序列化
+
+- JSON.parse(json字符串)，将json字符串解析为原生js值。
+
+  - 该方法也可以接收另一个参数，该参数是一个函数，也是有着键值对两个参数。如果返回undefined代表删除该键，如果返回其他值代表将该值插入到结果中。不做赘述。
+
+- JSON.stringify(json对象)，将js对象序列化为json字符串。
+
+  - 这个函数还可以接收另外两个参数，第一个参数是过滤器，可以是一个数组或函数；第二个参数控制缩进，值为字符串或数值。
+
+  ```
+  //如果过滤器是数组，那么结果中将只包含数组中列出的属性
+  var book = {
+  	"title" :"xxx",
+  	"authors": ["fjsdljfkl"],
+  	edition: 3,
+  	year: 2011
+  }
+  var jsontext = JSON.stringify(book,["title","edition"])	//结果中将只包含title和edition属性
+  //如果过滤器是函数，传入的函数接收两个参数，属性名和属性值。属性名只能是字符串，如果不是键值对形式，键名可以是空字符串。函数返回的值将作为相应的键值。如果返回undefined将会忽略该属性。返回value代表不做改变。
+  var book = {..跟上面一样}
+  var jsonText = JSON.stringify(book,function(key,value) {
+  	switch(key) {
+  		case "authors":
+  			return value.join(',')
+  		case "year":
+  			return 5000
+  		case "edition":
+  			return undefined
+  		default:
+  			return value
+  	}
+  })
+  ```
+
+  ```
+  //这里演示下第二个参数，缩进。当设置了该参数时会自动换行，如果是数字就代表空格的个数，如果是字符串那么就将字符串作为缩进的符号
+  var book = {..同上}
+  var jsonText = JSON.stringify(book,null,4)
+  结果为{
+      "title" :"xxx",
+  	"authors": ["fjsdljfkl"],
+      edition: 3,
+      year: 2011
+  }
+  ```
+
+- 如果JSON.stringify还是不能满足你的需求，可以自定义toJSON方法，一般就是在js对象内部定义，然后返回你需要的格式。
+
+## Ajax与Comet
+
+### 介绍
+
+- Ajax技术的核心是XMLHttpRequest对象（简称XHR)，XHR为向服务器发送请求和解析服务器响应提供了流畅的接口。能够以异步的方式从服务器取得更多信息，意味着用户单击后可以不必刷新页面也能取得新数据。也就是说可以用XHR取得数据后再通过DOM将新数据插入到页面中。
+- 简而言之，这种技术就是无须刷新页面即可从服务器取得数据，但不一定是XML数据。
+
+### XMR的请求实现
+
+- 发送请求
+
+```
+var xhr = new XMLHttpRequest()
+//open方法接收三个参数：要发送的请求类型，请求的url和是否异步发送请求的布尔值。调用open方法不会真正发送请求，而只是启动一个请求准备发送。
+xhr.open("get","xx.php",false)
+//发送特定的请求，调用send方法。send方法必须接收一个参数，即要作为请求体发送的数据。即使没有也要传null。
+xhr.send(null)
+```
+
+- 在收到响应后，相应的数据会自动填充XHR对象的属性，相关的属性简介如下
+  - responseText：作为响应主题内容被返回的文本
+  - responseXML：如果响应的内容类型是“text/xml”或“application/xml”，这个属性中将包含着响应数据的XML DOM文档，否则就是null。
+  - status：响应的http状态码。一般200是正确的，304也对，304表示是从缓存中取得的数据。
+  - statusText：http状态的说明，基本没啥用。
+- 如果发送的是异步请求，可以检测XHR对象的readyState属性，表示请求/响应过程中的当前活动阶段。每当readyState属性的值由一个值变为另一个值都会触发一次readystatechange事件。因此我们可以检测当值等等于4时去进行一系列操作。
+  - 0：未初始化，尚未调用open()方法
+  - 1：启动，已经调用open()方法，但尚未调用send()方法
+  - 2：发送，已经调用send()方法，但尚未接收到响应。
+  - 3：接收，已经接收到部分响应数据
+  - 4：完成，已经接收到全部响应数据，而且已经可以在客户端使用了。
+- 设置请求头，setRequestHeader(头部字段的名称，头部字段的值)。需要在open方法之后，send方法之前调用。更多的例如XMR2级对象等，请参见p578。
+
+### 跨域资源请求
+
+- 因为XHR默认只能访问与包含它的页面位于同一个域中的资源。跨域资源共享背后的思想是，使用自定义的http头部让浏览器与服务器进行沟通，从而决定请求响应是应该成功还是失败。
+
+- 一般的浏览器尝试打开不同来源的资源时，无需额外编写代码就可以触发这个行为。只需要在XHR对象的实例的open方法中传入绝对URL即可。例如`xhr.open('get','http://www.baidu.com/page/',true)`
+
+- 其他跨域技术
+
+  - 图像Ping：通过监听load和error事件，可以知道响应是什么时候收到的。请求从设置src这个属性时就开始了。一般只能用来浏览器与服务器之间的单向通信。
+
+  - JSONP：JSONP由回调函数和数据两部分组成，回调函数是当响应到来时应该在页面中调用的函数。JSONP是通过动态`<script>`元素来使用的，使用时可以为src属性指定一个跨域URL。这里的`<script>`元素与`<img>`元素类似，都有能力不受限制的从其他域中加载资源。因为JSONP是有效的js代码，所以在请求完成后，即在JSONP响应加载到页面中以后，就会立即执行。
+
+    ```
+    function handleResponse(response) {
+    	alert("your address "+ response.ip+" which is in "+ response.city+", "+ response.region_name)
+    }
+    var script = document.createElement('script')
+    srcipt.src = "http://freegeoip.net/json/?callback=handleResponse"
+    document.body.insertBefore(script,document.body.firstChild);
+    ```
+
+### Comet
+
+- Comet是一种服务器向页面推送数据的技术。Comet能够让信息近乎实时的被推送到页面上。有两种实现Comet的方式，长轮询和流
+  - 长轮询，页面发起一个到服务器的请求，然后服务器一直保持连接打开，直到有数据可发送。发送完数据之后，浏览器关闭连接，随即又发起一个到服务器的新请求。这一过程在页面打开期间一直持续不断。
+  - http流，就是浏览器向服务器发送一个请求，而服务器保持连接打开，然后周期性的向浏览器发送数据。
+
+### 服务器发送事件(SSE)与WebSockets
+
+- SSE用于创建到服务器的单向连接，服务器通过这个连接可以发送任意数量的数据。
+- WebScokets的目标是在一个单独的持久连接上提供双全工，双向通信。只用标准的HTTP服务器无法实现WebSockets，只有支持这种协议的专门服务器才能正常工作。
+
 ## BOM
 
 ### window对象
@@ -536,6 +719,20 @@ son.prototype = proto
 ### history对象
 
 - 保存着用户的历史记录，p215
+
+- history对象也可以用来进行历史状态管理
+
+```
+//可以在不加载页面的情况下改变浏览器的url，类似于前端路由的原理。
+//第一个参数为可以传递的信息，第二个为新状态的标题，第三个为可选的相对url
+
+history.pushState({name:'hehehe'},'新状态的标题'，'xxx.html')
+
+执行完pushState方法，新的状态信息就会被加入历史状态栈。
+执行后退按钮，就会触发window对象的popstate事件，进行回退。
+
+类似的还有replaceState方法，不过不会在历史状态栈中创建新状态。
+```
 
 ## DOM
 
@@ -642,11 +839,11 @@ document.createElement()，参数为元素名
 - scrollTop:被隐藏在内容区域上方的像素数，通过设置这个属性可以改变元素的滚动位置。
 - scrollTop和scrollLeft都是针对自身而言。
 
-## 事件
+### 事件
 
 - js与html之间进行交互是通过事件来实现的，事件流描述的是从页面中接收事件的顺序。DOM2级事件规定的事件流包括三个阶段，事件捕获阶段（从模糊到具体），处于目标事件阶段，事件冒泡阶段（从具体到模糊），一般都是冒泡事件。
 
-### 事件处理程序
+#### 事件处理程序
 
 - html内联js
 -  DOM0级事件处理程序，就是类似于element.onclick这种，一般事件前缀都有on。
@@ -654,7 +851,7 @@ document.createElement()，参数为元素名
 - 在触发DOM上的某个事件时，会产生一个事件对象event，这个对象中包含着所有与事件有关的信息，包括导致事件的元素，事件的类型以及其他与特定事件相关的信息，也有些方法像preventDefault()，见p355。
 - 事件类型，p362。
 
-## 表单脚本
+### 表单脚本
 
 - 基本属性，p412
 -  获取表单元素的独有方法，每个表单都有elements属性，该属性是个类数组，是表单中所有表单元素（字段的）集合，可以通过位置或者name特性来访问它，例如form1.elements[0]，form1.elements[‘hehe’]，第一个返回表单中第一个字段元素，第二个返回表单中name特性为hehe的元素，如果有多个name相同的就返回一个NodeList即一个类数组。

@@ -1,22 +1,3 @@
-# 防抖函数
-
-- 短时间内频繁进行某个操作时可以设置延迟对它进行防抖处理使得执行的性能更高。
-
-```javascript
-//这样就对test函数进行了防抖处理，执行test2时以200ms为延迟进行检测
-function debounce(func,delay) {
-let timer = null
-return function(...args) {
-if(timer) 
-{clearTimetout(timer)}
-timer = setTimeout(() => {
-func.apply(this,args)},delay)
-}
-}
-const test2 = debounce(test,200)
-test2()
-```
-
 # 反引号字符串`
 
 - 反引号定义的字符串支持换行，可以更方便的拼接。
