@@ -2,7 +2,7 @@
 
 ## 高级技巧
 
-- 回调函数的this指向window
+- 回调函数的this一般指向window
 - 防抖函数。短时间内频繁进行某个操作时可以设置延迟对它进行防抖处理使得执行的性能更高。
 
 ```javascript
@@ -10,15 +10,75 @@
 function debounce(func,delay) {
 let timer = null
 return function(...args) {
-if(timer) 
-{clearTimetout(timer)}
-timer = setTimeout(() => {
-func.apply(this,args)},delay)
-}
+	if(timer) {clearTimetout(timer)}
+	timer = setTimeout(() => { 
+	func.apply(this,args)},delay)
+	}
 }
 const test2 = debounce(test,200)
 test2()
 ```
+
+- 节流函数。跟防抖函数类似。节流函数背后的思想是，某些代码不可以在没有间断的情况下连续重复执行。
+
+```javascript
+//节流函数，第一个参数表示要执行的函数，第二个参数为可选的在哪个作用域执行，不填默认就是window
+function throttle(method, context) {
+	clearTimeout(method.timer)
+	method.timer = setTimeout(function (){
+		method.call(context)
+	},100)
+}
+//实例
+function resizeDiv() {
+ 	var div = document.querySelector('#mydiv')
+    div.style.height = div.offsetWidth + "px"
+}
+window.onresize = function() {
+    throttle(resizeDiv)
+}
+```
+
+- 高级定时器
+
+  - js是单线程语言，当页面下载后的代码运行，事件处理程序，ajax回调等，浏览器需要对其负责进行排序，指派某段代码在某个时间点运行的优先级。在js中没有任何代码是立即执行的，但一旦进程空闲则尽快执行。
+  - 定时器对队列的工作方式是，当特定时间过去后将代码插入。注意，给队列添加代码并不意味着对它立刻执行，而只能表示它会尽快执行。它的指定的时间间隔实际上表示的是何时将定时器的代码添加到队列，而不是何时执行
+  - setInterval这种重复定时器存在着两个问题，一是某些间隔会被跳过，二是多个定时器的代码执行之间的间隔可能会比预期要小。有一种解决的办法就是使用setTimeout链式调用。
+
+  ```javascript
+  setTimeout(function() {
+      函数处理代码
+  //通过arguments.callee取得对自身函数的等间隔重复调用，也可以设置条件来决定调用何时终止。
+  //这种调用方式的好处是在前一个定时器代码执行完之前，不会向队列插入新的定时器代码，确保了不会有任何缺失的时间间隔。而且，它可以保证在下一次定时器代码执行完之前，至少要等待指定的间隔，避免了连续的运行。
+      setTimeout(arguments.callee,time)	
+  },time)
+  ```
+
+- 数组分块技术
+
+  - 在代码中，如果存在大量处理的循环容易造成脚本阻塞，因为js是单线程，这会影响后续的处理操作。因此如果数据对后续的操作不需要同步完成或按顺序完成时就可以利用数组分块技术，来进行异步等间隔处理。
+
+  ```javascript
+  //分块函数
+  //第一个参数是数组，第二个参数是处理函数，第三个参数是可选的函数执行环境
+  function chunk(data,process,context) {
+  	setTimeout(function() {
+          var item = array.shift()
+          process.call(context,item)
+          if(data.length>0) {
+              setTimeout(arguments.callee,100)
+          }
+      },100)
+  }
+  var data = [1,3,4,5,56,6,89]
+  function printValue(item) {
+  	var div = document.getElementByID("mydiv")
+      div.innerHTML += item + "<br>"
+  }
+  chunk(data,printValue)
+  ```
+
+- 更多惰性载入函数，防篡改对象，以及自定义事件请参考p620。
 
 ## 基本概念
 
@@ -695,6 +755,99 @@ xhr.send(null)
 
 - SSE用于创建到服务器的单向连接，服务器通过这个连接可以发送任意数量的数据。
 - WebScokets的目标是在一个单独的持久连接上提供双全工，双向通信。只用标准的HTTP服务器无法实现WebSockets，只有支持这种协议的专门服务器才能正常工作。
+
+## 离线应用与客户端存储
+
+### 离线检测
+
+- 通过`navigator.onLine`来判断，离线为false，否则为true
+
+### 应用缓存
+
+- 应用缓存（application cache），就是从浏览器的缓存中分出来的一块缓存区。要想在这个缓存中保存数据，可以使用一个描述文件，列出想要下载和缓存的资源。
+
+```
+//一个简单的描述文件示例
+CACHE MANIFEST
+#Comment
+
+file.js
+file.css
+要将描述与页面关联起来，可以在<html>的manifest属性中指定这个文件的路径，例如
+<html manifest="/offline.manifest">
+以上代码告诉界面，/offline.appcache中包含着描述文件。这个文件的MIME类型必须是text/cache-manifest
+```
+
+### 数据存储
+
+- 就是在客户端上存储客户信息，例如登录信息，偏好设定等。有以下几种数据存储方式
+
+#### Cookie
+
+- 限制
+
+  - cookie在性质上是绑定在特定的域名下的。当设定了一个cookie后，再给创建它的域名发送请求时，都会包含这个cookie。这个限制确保了储存在cookie中的信息只能让批准的接收者访问，而无法被其他域访问。
+
+  - 由于cookie是存在客户端计算机上的，因此浏览器对于每个域的cookie个数一般是有数量要求的，当数量超过要求时就会清楚以前的cookie。
+
+  - 另外浏览器对于cookie的尺寸也是有限制的，所有cookie加起来的长度最好不要超过4095个字节。
+
+- cookie的构成
+
+  - 名称：一个唯一确定一个cookie的名称。cookie名称不区分大小写，不过实践中还是建议区分大小写。
+  - 值：储存在cookie中的字符串，值必须被URL编码。
+  - 域：cookie对于哪个域是有效的。所有向该域发送的请求中都会包含这个cookie信息。
+  - 路径：即指定路径，只有该路径下才能访问cookie，那么别的页面就不会发送cookie信息。
+  - 失效时间，表示cookie何时应该被删除的时间戳（也就是何时应该停止向服务器发送这个cookie）。默认情况下，浏览器会话结束时就将所有cookie删除了。不过也可以自己设置删除时间来推迟它。
+  - 安全标志：指定后，cookie只有在使用SSL连接的时候才发送到服务器。例如https://xxx可以，但是http://xx就不行。例如secure
+
+  ```
+  展示两个cookie示例，使用分号加空格分割每一段
+  Set-Cookie: name=value; expires=Mon,22-Jan-07 7:10:24 GMT; domain=.wrox.com
+  Set-Cookie: name=valeu; domain=.wrox.com; path=/; secure
+  ```
+
+#### Web存储机制
+
+- Web Storage的两个主要目标是：提供一种在cookie之外存储会话数据的途径；提供一种存储大量可以跨会话存在的数据的机制。
+- Storage类型：Storage类型提供最大的存储空间（因浏览器而异）来存储名值对儿。Storage的实例与其他对象类似，有如下方法。因为每个项目都是作为属性存储在该对象上的，所以也可以通过点语法，方括号语法来读取设置值，不过并不推荐。Storage类型的实例有sessionStorage，localStorage等，都是作为window对象的属性存在，可以直接调用。
+  - clear（）：删除所有值
+  - getItem（name）：根据指定的名字name获取对应的值
+  - key（index）：获得index位置处的值的名字
+  - removeItem（name）：删除由name指定的名值对儿。
+  - setItem（name，value）：为指定的name设置一个对应的值。
+
+- 对Storage对象进行任何修改，都会在文档上触发storage事件，这个事件的event对象有以下属性
+  - domain：发生变化的存储空间的域名
+  - key：设置或删除的键名
+  - newValue：如果是设置值，则是新值；如果是删除键，就是null
+  - oldValue：键被更改之前的值
+
+```javascript
+//这里介绍下localStorage。要访问一个localStorage对象，页面必须来自同一个域名（子域名无效），使用同一种协议，在同一个端口上。
+//存储在localStorage中的数据保留到通过js删除或者是用户清除浏览器缓存
+localStorage.setItem("name","nicolas")	//使用方法存储数据
+localStorage.book = "professional js"	//使用属性存储数据
+var name = localStorage.setItem("name")		//使用方法读取数据
+var book = localStorage.book	//使用属性读取数据
+
+//sessionStorage与它类似不过是保存到浏览器关闭。
+```
+
+- IndexedDB：是在浏览器中保存结构化数据的一种数据库，它的数据不是保存在表中，而是保存在对象存储空间中。它的操作完全是异步进行的。简而言之，一般是为了使用js存储大量数据而使用的。不过不能存储敏感数据，因为数据缓存并不会被加密。
+  - 因为IndexedDB设计的操作完全是异步进行的。因此大多数操作会以请求方式进行，但这些操作会在后期执行，如果成功则返回结果，如果失败则返回错误。差不多每一次IndexedDB的操作，都需要去给它注册onerror或onsuccess事件处理程序，以确保适当的处理结果。
+
+```javascript
+//这里简单展示下打开IndexedDB数据库的例子
+var request = window.indexedDB.open("admin")
+request.onsuccess = function(event) {
+    database = event.target.result
+}
+request.onerror = function(event) {
+    alert("某些错误发生了在你打开数据库时: " + event.target.errorCode)
+}
+//更多的创建存储空间，事务，游标，索引，并发问题等请自行参阅P652
+```
 
 ## BOM
 

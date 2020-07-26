@@ -830,3 +830,40 @@ this.$refs.mycom.$el	//拿到组件的根元素
 </cpn>
 ```
 
+## 高级组件封装
+
+- 高级组件封装就是为了在任何组件中都可以直接调用该组件，连引入都不用。核心思想就是将它封装在Vue的prototype上。主要就是为了我们平时使用可以更方便的调用。
+
+```javascript
+下面以toast组件为例
+// toast/Toast.vue
+  methods: {	//在组件中定义方法来实现toast显示和隐藏
+      showMessage(Message = "默认内容",duartion = 2000) {
+          this.message = Message
+          this.isShow = true
+          setTimeout(() =>{
+              this.isShow =false
+              this.message = ''
+          },duartion)
+      }
+  }
+// toast/index.js
+import Toast from './Toast.vue'
+const obj = {
+    install(Vue) {
+        //Vue.extend是基础vue构造器，创建一个子类，参数是一个包含组件选项的对象
+        const toastConstructor = Vue.extend(Toast)	
+        const toast  = new toastConstructor()
+        toast.$mount(document.createElement('div'))	//将toast挂载到div上
+        document.body.appendChild(toast.$el)	//将toast组件添加到body上
+        Vue.prototype.$toast = toast	//在vue原型上定义toast引用
+    }
+}
+export default obj
+// main.js
+import toast from 'components/common/toast/index.js'
+Vue.use(toast)	//Vue.use会去调用参数对象的install函数
+
+到时使用的时候直接this.$toast.showMessage()传入默认内容与持续时间即可。
+```
+

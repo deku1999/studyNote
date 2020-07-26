@@ -185,6 +185,7 @@ git checkout 	分支名		//切换分支
 git checkout -b 分支名		//-b表示创建分支并切换
 git merge 分支名			//git merge命令用于合并指定分支到当前分支
 git brancn -d 分支名		//删除分支，不能位于删除的分支下去执行该操作
+git push origin --delete 远程分支名		//删除远程分支
 
 新版的git为了避免git checkout -- 有撤销的意义，切换创建分支可以通过git swtich来实现
 git switch -c 分支名		//创建并切换到该分支
