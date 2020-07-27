@@ -256,7 +256,40 @@ npm config list
 - `package-lock.json`这个文件会保存`node_modules`中所有包的信息，这样重新`npm install`的时候的速度就会快很多。
 - `package-lock.json`这个文件还有个文件锁的功能，假如`package.json`文件中有个依赖包，如果重新`npm install`那么会自动安装该依赖的最新版，但是如果有这个文件就会锁定该文件里文件的版本，从而解决有时因版本冲突带来的问题。
 
-# node文件处理
+# url模块
+
+- `url.parse(httpUrl)`，将我们传递进去的url拆分为一个对象的形式，里面有包括域名，路径等属性。
+- `url.resolve(headUrl,footUrl)`，合并url
+
+```javascript
+var url = require('url')
+var httpUrl = "https://www.bilibili.com/video/BV1i7411G7kW?p=9"
+//解析url
+console.log(url.parse(httpUrl))
+Url {		//结果
+  protocol: 'https:',
+  slashes: true,
+  auth: null,
+  host: 'www.bilibili.com',
+  port: null,
+  hostname: 'www.bilibili.com',
+  hash: null,
+  search: '?p=9',
+  query: 'p=9',
+  pathname: '/video/BV1i7411G7kW',
+  path: '/video/BV1i7411G7kW?p=9',
+  href: 'https://www.bilibili.com/video/BV1i7411G7kW?p=9'
+}
+//合成url
+var headUrl = "http://www.taobao.com/"
+var footUrl = "./sxt/qianduan/test.html"
+console.log(url.resolve(headUrl,footUrl))
+http://www.taobao.com/sxt/qianduan/test.html	//结果
+```
+
+
+
+# node文件处理模块
 
 ## 读取文件
 
@@ -846,3 +879,84 @@ app.use(function(err,req,res,next) {
 })
 ```
 
+# node爬虫技术
+
+## 传统爬虫
+
+- 这里先介绍个简单爬虫
+
+```javascript
+//如果是图片可以直接就二进制格式进行写入，如果是文字不要忘了加utf8编码。
+//转换文字示例，这里借助了gbk模块将二进制文件转换为urf8文件。有些网站比较简单，它本身的文字就直接是utf8这样就会出错，这时可以直接输出字符串查看。
+npm install gbk
+var gbk = require('gbk')
+var html = gbk.toString('utf-8',data)
+fs.writeFile('xx.html',html)
+//爬虫示例
+const fs = requrie('fs')
+const url = require('url')
+getUrl("https://xxx.taobao.com",(data) => {
+    fs.writeFile("xxx.jpg",data)
+})
+function getUrl(sUrl,success) {
+    var urlObj = url.parse(sUrl)
+    var http = ''
+    if(urlObj.protocol ==='http:'){
+        http = require('htpp')
+    }
+    else{
+        http = require('https')
+    }
+    let req = http.request({
+        'hostname': urlObj.hostname,
+        'path': urlObj.path
+    },res => {
+        var arr = []
+        var str = ''
+        res.on("data",buffer  => {
+            arr.push(buffer)
+            str+= buffer
+        })
+        res.on("end",() => {
+            let b = Buffer.concat(arr)
+            success && success(b)
+        })
+    })
+    //将请求结束
+    req.end()
+    //处理错误条件，如果出错进不来这里
+    req.on('error',() => {
+        console.log('404了，哥们，网址找不到')
+    })
+}
+```
+
+- 爬虫中对html字符串进行DOM操作从而取出相关值
+
+```
+npm install jsdom
+var JSDOM = require('jsdom').JSDOM
+let DOM = new JSDOM(html字符串)
+let document = DOM.window.docuement
+console.log(document.querySelector('.hehe').innerHTML)
+```
+
+- 小说网站挖掘示例
+
+```
+//这里需要用到中文中的关键词挖掘模块segment
+npm install segment
+const Segment = require('segment')
+let seg = new Segment()
+seg.useDefault()
+var str = '今天天气小雨'
+console.log(seg.doSegment(str))		//会返回传入的字符串到底由哪些词组成，格式是一个数组，元素为对象
+```
+
+## 另一种爬虫
+
+- 这里就是利用`axios`或者`request`模块来发起请求，然后利用`cheerio`模块来抓取页面模块，该模块是为服务器定制的，快速，灵活实施的jquery实现。适合各种web爬虫程序。
+
+### 爬取表情包
+
+- 这里写个思路，就是自己先搜索获得网页地址，之后观察网页源代码，找出自己想要爬取的元素的dom规律，对其内容进行读取。之后根据需要创建文件夹并进行写入。

@@ -15,7 +15,7 @@
 - 通过script标签然后通过cdn引入或是通过react.js文件引入。适合调试学习。
 - 通过react的脚手架，创建项目进行开发部署。适合真正的项目
   - 安装脚手架`npm  install -g create-react-app`
-  - 创建项目，`npm init react-app 项目名`
+  - 创建项目，`npm init react-app 项目名`，或者`create-react-app 项目名`
 
 ## react Jsx
 

@@ -867,3 +867,86 @@ Vue.use(toast)	//Vue.use会去调用参数对象的install函数
 到时使用的时候直接this.$toast.showMessage()传入默认内容与持续时间即可。
 ```
 
+# Vue进阶上
+
+## $emit和$on用法
+
+- this.$on
+
+```javascript
+//$on的第一个事件名可以定义成数组即多个事件名的形式。另外$on方法本身也可以调用多次，那么处理函数就按定义顺序去执行。
+//普通的
+this.$on("my_events",this.handleEvents)
+//多个事件处理函数
+this.$on("my_events",this.handleEvents)
+this.$on("my_events",this.handleEvents2)
+//多个事件
+this.$on(['my_events','my_events2'],this.handleEvents)
+
+当然，不要忘了$on接收的是this.$emit发送的事件。
+```
+
+## directive指令用法
+
+我们有时需要去定义些自定义指令来辅助我们更好的完成某些操作。
+
+- 注册
+
+  - 全局注册，就是直接
+
+  ```
+  Vue.directive('指令名',{
+  	//指令选项
+  })
+  ```
+
+  - 局部注册
+
+  ```
+  var app = new Vue({
+  	el:'#app',
+  	directives: {
+  		指令名:{
+  			//指令选项
+  		}
+  	}
+  })
+  ```
+
+- 自定义指令的选项是由几个钩子函数组成的，每个都是可选的。
+  - bind：只调用一次，指令第一次绑定到元素时调用，用这个钩子函数可以定义一个在绑定时执行一次的初始化动作
+  - inserted：被绑定元素插入父节点时调用（父节点存在即可调用，不必存在于document中）
+  - update：被绑定元素所在的模板更新时调用，而不论绑定值是否变化。通过比较更新前后的绑定值，可以忽略不必要的模板更新。
+  - componentUpdated：被绑定元素所在模板完成一次更新周期时调用
+  - unbind：只调用一次，指令与所在元素解绑时调用
+
+- 每个钩子函数都有几个参数可用，例如
+  - el：指令所绑定的元素，可以用来直接操作DOM
+  - binding：一个对象，包含下列属性
+    - name：指令名，不包括`v-`前缀
+    - value：指令的绑定值，例如v-my-directive="1+1"，value的值就是2
+    - oldValue：指令绑定的前一个值，仅在update和componentUpdated钩子中可用。无论值是否改变都可用。
+    - expression：绑定值的字符串形式。例如v-my-directive："1+1"，expression的值是”1+1“
+    - arg：传给指令的参数。例如v-my-directive:foo，arg的值是foo
+    - modifiers：一个包含修饰符的对象。例如v-my-directive.foo.bar，修饰符对象modifiers的值是{foo：true，bar：true}
+  - vnode：Vue编译生成的虚拟节点
+  - oldVnode：上一个虚拟节点仅在update和componentUpdated钩子中可用。
+
+```javascript
+//配置一个打开页面input自动聚焦的指令
+<div id="app">
+    <input type="text" v-focus>
+</div>
+<script>
+	Vue.directive('focus',{
+		inserted: function(el) {
+            //聚焦元素
+            el.focus()
+		}
+    })
+	var app = new Vue({
+        el: '#app'
+    })
+</script>
+```
+
