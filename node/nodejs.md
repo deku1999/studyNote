@@ -287,8 +287,6 @@ console.log(url.resolve(headUrl,footUrl))
 http://www.taobao.com/sxt/qianduan/test.html	//结果
 ```
 
-
-
 # node文件处理模块
 
 ## 读取文件
@@ -953,10 +951,73 @@ var str = '今天天气小雨'
 console.log(seg.doSegment(str))		//会返回传入的字符串到底由哪些词组成，格式是一个数组，元素为对象
 ```
 
-## 另一种爬虫
+## 爬虫更进一步
 
 - 这里就是利用`axios`或者`request`模块来发起请求，然后利用`cheerio`模块来抓取页面模块，该模块是为服务器定制的，快速，灵活实施的jquery实现。适合各种web爬虫程序。
 
 ### 爬取表情包
 
 - 这里写个思路，就是自己先搜索获得网页地址，之后观察网页源代码，找出自己想要爬取的元素的dom规律，对其内容进行读取。之后根据需要创建文件夹并进行写入。
+
+### 爬取音乐
+
+- 这里主要的不同是，有些内容属于前端渲染，即直接查看源代码无法获取。那么我们就要自己去network中找`XHR`请求，即ajax请求，找到我们想要的信息的ajax请求，然后再利用他进行爬取。
+- 注意，图片，音频，视频这些文件是以二进制格式返回的，所以响应类型要记得设置为流类型，然后以流形式进行写入。
+
+```javascript
+//流形式读取，写入示例
+async function download(mp3Url,title) {
+    let res = axios.get(mp3Url,{    //因为音频是二进制文件，所以响应类型为流形式
+        responseType: "stream"
+    })
+    let ws = fs.createWriteStream('./mp3/'+title+".mp3")
+    res.data.pipe(ws)     //写入
+    res.data.on("close",function (){
+        ws.close()  //关闭写入流
+    })
+}
+```
+
+### puppeteer
+
+- Puppeteer 是一个 Node 库，它提供了一个高级 API 来通过 [DevTools](https://zhaoqize.github.io/puppeteer-api-zh_CN/(https://chromedevtools.github.io/devtools-protocol/)) 协议控制 Chromium 或 Chrome。Puppeteer 默认以 [headless](https://developers.google.com/web/updates/2017/04/headless-chrome) 模式运行，但是可以通过修改配置文件运行“有头”模式。
+
+```javascript
+npm install puppeteer --save
+let puppeteer = require('puppeteer')
+async function test() {
+    //puppeteer.launch实例开启浏览器，可以传入一个options对象，可以配置为无界面浏览器，也可以配置为
+    //有界面浏览器，无界面浏览器性能更好点。有界面一般用于调试开发。
+    let browser = await puppeteer.lanucn({
+        headless: false,     //设为有界面
+        defaultViewport: {      //设置浏览器宽高，默认为800*600
+            width:1400,
+            height:800
+        }
+    })
+    //创建页面对象
+    let page = await browser.newPage()
+    //访问页面
+    await page.goto("http://www.baidu.com")
+    //截图
+    await page.screenshot({path:'screenshot.png'})
+    //获取页面内容，$$eval函数使得我们的回调函数可以运行在浏览器中，并且可以通过浏览器的方式进行监听
+    page.$$eval("#menu li a",(elements) => {
+        console.log(elements)   //这个输出是在浏览器的控制台输出
+    })
+    //事件监听
+    page.on('console',function(eventMsg) {
+        console.log(eventMsg.test())   //在终端输出
+    })
+}
+
+//也可以模仿事件点击
+elementsHandles = await page.$$("#menu li a")
+elementsHandle[2].click()
+```
+
+# 将服务器部署到公网上
+
+## 通过内网穿透部署
+
+- 比较简单，利用一款叫做`花生壳工具`即可部署，可以叫做内网穿透技术，该工具也可以下载桌面端以方便管理。
