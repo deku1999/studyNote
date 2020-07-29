@@ -804,6 +804,115 @@ req.session.foo	//读取
 req.session.foo = null	//清除登录状态
 ```
 
+## express中cookie用法
+
+### 基本用法
+
+1. 安装，`npm install cookie-parser --save`
+2. 引入，`const cookieParser = require("cookie-parser")`；
+3. 设置中间件，当然要在挂载路由前，`app.use(cookieParser())`
+4. 设置cookie，在响应的时候设置
+
+```javascript
+// res.cookie（名称，值，{配置信息}
+res.cookie("name",'zhangsan',{maxAge: 900000, httpOnly: true});
+例如：
+router.get('/setcookie',function(req,res) {
+	//基础设置cookie，有效期为一个会话，即当前浏览器关闭之后就没了
+	res.cookie("isLogin","true");
+    //配置cookie额外参数
+ 	res.cookie("name",'zhangsan',{maxAge: 900000,httpOnly: true})
+	res.send("cookie设置成功")
+})
+router.get('/admin',fucntion(req,res) {
+	if(req.cookies.isLogin === 'true'){
+    	res.send('登录成功')
+	}else{
+        res.send('请先登录')
+    }           
+})
+
+关于设置cookie的参数说明：
+1. domain: 域名  
+2. name=value：键值对，可以设置要保存的 Key/Value，注意这里的 name 不能和其他属性项的名字一样 
+3. Expires： 过期时间（秒），在设置的某个时间点后该 Cookie 就会失效，如 expires=Wednesday, 09-Nov-99 23:12:40 GMT。
+4. maxAge： 最大失效时间（毫秒），设置在多少后失效 。
+5. secure： 当 secure 值为 true 时，cookie 在 HTTP 中是无效，在 HTTPS 中才有效 。
+6. Path： 表示 在那个路由下可以访问到cookie。
+7. httpOnly：是微软对 COOKIE 做的扩展。如果在 COOKIE 中设置了“httpOnly”属性，则通过程序（JS 脚本、applet 等）将无法读取到COOKIE 信息，防止 XSS 攻击的产生 。
+8. singed：表示是否签名cookie, 设为true 会对这个 cookie 签名，这样就需要用 req.signedCookies 而不是 req.cookies 访问它。被篡改的签名 cookie 会被服务器拒绝，并且 cookie 值会重置为它的原始值。
+```
+
+### 多个二级域名共享cookie
+
+- 只需要增加res.cookie中option对象的值，即可实现对相应路由下多个二级路由的cookie进行共享，代码如下：
+
+```javascript
+const express=require("express");
+const cookieParser=require("cookie-parser");
+var app=express();
+//设置中间件
+app.use(cookieParser());
+app.get("/",function(req,res){
+	res.send("首页");
+});
+//设置cookie
+app.get("/set",function(req,res){
+	res.cookie("userName",'张三',{maxAge: 200000, httpOnly: true,domain: "ccc.com"});
+	res.send("设置cookie成功");
+});
+//获取cookie
+app.get("/get",function(req,res){
+	console.log(req.cookies.userName);
+	res.send("获取cookie成功，cookie为："+ req.cookies.userName);
+});
+app.listen(8080);
+//不同的二级域名也能访问到相同的cookie，只要满足ccc.com这个顶级域名就行。
+```
+
+### cookie加密
+
+```
+// 将cookieParser添加secret参数
+app.use(cookieParser('secret'))
+// 设置加密操作
+res.cookie('login','true',{
+	signed: true
+})
+// 加密完之后进行获取需要先进行解密才能获取
+req.signedCookies.login
+```
+
+### 加密原理解析
+
+- node为我们提供了一个核心安全模块“crypto”，它提供了很多安全相关的功能，如摘要运算、加密、电子签名等。这样，我们便可很轻易的封装一个加密模块：
+
+```javascript
+//MD5.js
+const crypto=require('crypto');
+module.exports={
+	//MD5封装
+	MD5_SUFFIX:'s5w84&&d4d473885s2025s5*4s2',
+	md5:function(str){
+		var obj=crypto.createHash('md5');
+		obj.update(str);		
+		return obj.digest('hex');
+	}
+}
+//xx.js
+const common=require('./MD5');
+var str='123456';
+var str=common.md5(str+'s5w84&&d4d473885s2025s5*4s2');
+//设置并加密cookie
+app.use(function(req,res,next){
+	res.cookie("userName", str, {maxAge: 5*60*1000, httpOnly: true});
+	res.end("set ok");
+});
+```
+
+- 如果是在判断登录时，只需将用户输入的账号进行同样加密操作在进行比较即可知道账户是否正确。
+  crypto所涉及的加密方式有很多，推荐大家都写模块引用，这样更方便后期的维护。
+
 ## md5加密
 
 - 可以在github上搜索相关项目，通过npm安装后可以对密码进行加密。
