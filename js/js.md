@@ -314,12 +314,12 @@ for(item of items) {
 #### 创建正则表达式
 
 - 一是构造函数new RegExp()，接收两个参数一个是要匹配的字符串模式一个是可选的标志字符串。
-- 另一个是字面量定义，var express = /pattern/flags;其中pattern就是正则表达式，flags即标志，可以有一个或多个，例如g，i，m，参见p103。
+- 另一个是字面量定义，var express = /pattern/flags;其中pattern就是正则表达式，flags即标志，可以有一个或多个，例如g，i，m，参见p103。 g 代表全局搜索， i 代表不区分大小写。
 
 #### 方法
 
 - RegExp类型具有很多属性取得有关模式的各种信息，例如global，source，lastIndex等，参见p105。
-- 捕获组方法exec()，参见p106，可以用来过滤字符串；测试方法test()，接收字符串参数判断是否符合正则表达式模式，返回布尔值
+- 捕获组方法exec()，参见p106，可以用来提取字符串中特定字符；测试方法test()，接收字符串参数判断是否符合正则表达式模式，返回布尔值
 
 ### function类型
 
@@ -386,7 +386,7 @@ for(item of items) {
 | trim                       | 创建字符串副本，删除前置及后缀的所有空格，然后返回结果       |
 | toLowerCase,toUpperCase    | 大小写转换                                                   |
 | localeCompare              | 比较两个字符串，如果小于返回-1，相等返回0，大于返回1         |
-| match,search,replace,split | 字符串模式匹配，参见p127                                     |
+| match,search,replace,split | 字符串模式匹配，详细参见p127。match方法用于在字符串中提取特定字符，跟exp对象的exec方法基本相同。split用于按照特定规则分割字符串并将结果保存在数组中。serach方法类似indexOf不多介绍。 |
 | replace                    | 替换字符串的特定字符，返回替换后的字符串。例，var str = 'absfacd' var c = str.replace('a','h')，默认只会替换第一个。可以第一个参数传正则表达式来实现全局替换。 |
 
 ### 单体内置对象
