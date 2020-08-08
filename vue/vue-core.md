@@ -45,173 +45,6 @@ export default {
 }
 ```
 
-## axios介绍
-
-- axios是一个网络请求框架，不属于原生的vue框架
-- axios默认的是get请求，axios内部实现了promise并进行了resolve，所以可以直接通过then来进行操作。
-
-### 基本使用
-
-- ```
-  npm insatll axios --save 
-  ```
-
-- 之后在需要的文件中引入即可
-
-  ```
-  import axios from 'axios'
-  ```
-
-- 常见的配置选项
-
-<img src="C:\Users\22140\Desktop\web-study\note\assets\img\image-20200709150155605.png" alt="image-20200709150155605"  />
-
-### 发送请求
-
-```javascript
-axios({
-url: '..',
-params: {
-..
-}
-}).then(res => {console.log(res)})
-```
-
-### 发送并发请求
-
-- 跟promise的all方法比较像，这里的results也是个数组
-
-```javascript
-axios.all([axios({
-	url:'...'
-}),axios({
-	url:'....'
-})
-]).then(results => {console.log(results)})
-```
-
-### axios实例和模块封装
-
-- 因为我们直接用导入的axios的话默认用的是全局的axios，因此对它进行一些全局信息配置会影响到有时不一样配置的使用。
-- 因此我们一般会根据情况创建多个axios实例进行网络请求管理。这里create方法的参数对象里放的是要配置的公共信息。
-
-```javascript
-//network/request.js
-import axios from 'axios'
-export function request(config) {
-    //创建axios的实例
-	const instance = axios.create({
-	baseURL: '...',
-	timeout: 5000
-	})
-    //发送真正的网络请求
-	return instance(config)
-}
-```
-
-### axios拦截器的使用
-
-- 有时我们需要对请求进行拦截并进行相应的处理，这时我们可以使用拦截器。
-- 拦截器分为两大类，一类是请求，一类是响应。即第一类其实是发送出去的过程，而第二类是响应后返回的过程，每一类都有成功，失败两种结果。
-- 请求拦截
-  - 注意拦截成功后记得返回config，不然无法进行请求。
-  - 失败仅当发送失败时会发生。
-
-```javascript
-//一般是在下列情况下会进行请求拦截
-//1.比如config中的一些信息不符合服务器的要求
-//2.比如每次发送网络请求时，都希望在界面中显示一个请求的图标
-//3.某些网络请求，例如登录token，必须携带一些特殊的信息
-const instance = axios.create({
-    baseURL: '..',
-    timeout: 5000
-})
-instance.interceptors.request.use(config => {
-    console.log(config)
-    return config
-},err =>{
-    console.log(err)
-})
-```
-
-- 响应拦截
-  - 注意响应拦截拦截成功拿到的是响应后的结果，也要记得返回不然拿不到结果，当然一般返回res.data即可
-  - 失败会在请求失败后发生。
-
-```javascript
-instance.interceptors.reponse.use(res => {
-    console.log(res)
-    return res.data
-},err =>{
-    console.log(err)
-})
-```
-
-## better-scroll介绍
-
-- 一个用来专门做滚动的框架，我们一般都是独立封装个组件来使用它。
-- better-scroll对结构有明确的要求，它的父类需要有明确的高度，子类必须要div包裹。
-
-```html
-<div class="wrapper">	//父类
-    <div class="content">	//子类
-        .....
-    </div>
-</div>
-```
-
-- better-scroll通过.on来监听事件，默认情况下只能进行一次上拉加载，所以需要在函数末尾调用finishPullUp方法来告知系统已经完成该次操作以便进行下次触发。
-- better-scroll对象有个y属性，可以取得当前滚动y方向的坐标值
-- 使用流程
-
-```html
-//npm下载
-npm install better-scroll --save
-//组件封装
-<template>
-    <div class="wrapper" ref="scroll">
-        <div class="content">
-            <slot></slot>
-        </div>
-    </div>
-</template>
-<script>
-    import BScroll from 'better-scroll'
- 	export default {
-        data() {
-            return {
-                bscroll : null
-            }
-        },
-        mounted() {
-        this.bscroll = new BScroll(this.$refs.scroll,{
-        	probeType: 3,	//0,1不检测，2在手指滚动的过程中侦测，手指离开后的惯性滚动不检测，3只要是							滚动都检测
-            click: true,	//因为better-scroll子元素内的点击事件默认不能被监听，设置为true就可以
-            pullUpLoad: ture	//监听是否加载上拉加载更多
-    	})
-        //监听滚动并在回调函数中发射出携带位置信息的滚动事件
-      	this.bscroll.on("scroll",position =>{
-            this.$emit('scroll',position)
-      })
-        //监听上拉触底事件
-      	this.bscroll.on("pullingUp",() =>{
-          this.$emit("pullingUp")
-          console.log('上拉加载更多')
-          setTimeout(()=> {
-              //告知系统已完成该次操作，以便进行下次触发
-              this.bscroll.finishPullUP()
-          })
-      })
-    }
- }
-</script>
-```
-
-### scrollHeight计算bug
-
-- better-scroll在包含请求数据时，即可能数据还没加载完却计算出了scrollheight导致滚动高度不足滚动卡顿。
-- 因为卡顿一般都是图片导致的，所以可以在图片加载完成时调用    refresh()    方法。你可能会说有可能不是图片，那也没关系，在$nextTick回调函数中去调用    refresh()   方法即可。
-
 # mvvm介绍
 
 - mvvm，m就是model，v就是view
@@ -223,7 +56,7 @@ npm install better-scroll --save
   - 数据层
   - 数据可能是我们固定的死数据，更多的是来自我们服务器，从网络上请求下来的数据
   - 在我们计算器的案例中，就是后面抽取出来的obj，当然里面的数据可能没有这么简单
-- VueModel层：
+- ViewModel层：
   - 视图模型层
   - 视图模型层是View和Model沟通的桥梁
   - 一方面它实现了Data Binding，也就是数据绑定，将Model的改变实时的反映到view中
@@ -947,6 +780,414 @@ this.$on(['my_events','my_events2'],this.handleEvents)
 	var app = new Vue({
         el: '#app'
     })
+</script>
+```
+
+## 组件通信inject和provide
+
+主要是为了使得跨组件间的通信更加的方便，传统的props太臃肿，vuex有点大材小用。
+
+provider/inject：简单的来说就是在父组件中通过provider来提供变量，然后在子组件中通过inject来注入变量
+
+需要注意的是这里不论子组件有多深，只要调用了inject那么就可以注入provider中的数据。而不是局限于只能从当前父组件的prop属性来获取数据。
+
+```html
+这里写简写形式，能看懂就行
+//父组件
+<template>
+    <div>
+        <childOne></childOne>
+    </div>
+</template>
+<script>
+    export default {
+        name: 'parent',
+        provide: {
+            for: "demo"
+		},
+        components: {
+			childOne
+        }
+	}
+</script>
+//子组件
+<template>
+    <div>
+        {{demo}}
+        <childTwo></childTwo>
+    </div>
+</template>
+<script>
+    export default {
+        name: 'childOne',
+		inject: ['for'],
+        data() {
+            return {
+                demo: this.for
+            }
+        }
+        components: {
+			chilTwo
+        }
+	}
+</script>
+//孙组件
+<template>
+    <div>
+        {{demo}}
+    </div>
+</template>
+<script>
+    export default {
+        name: 'childTwo',
+		inject: ['for'],
+        data() {
+            return {
+                demo: this.for
+            }
+        }
+	}
+</script>
+```
+
+上述代码在父组件中用provide提供for变量，之后子组件与孙组件分别注入到自己的组件中，最终显示的结果是两个demo。
+
+## 监听器watch
+
+### **1.常见用法**
+
+```javascript
+<div id="root">
+      <h3>Watch 用法1：常见用法</h3>
+      <input v-model="message">
+      <span>{{copyMessage}}</span>
+</div>
+ new Vue({
+        el: '#root',
+        watch: {
+          message(value) {
+            this.copyMessage = value
+          }
+        },
+        data() {
+          return {
+            message: 'Hello Vue',
+            copyMessage: ''
+          }
+        }
+      })
+```
+
+### **2.绑定方法**
+
+```javascript
+<div id="root2">
+      <h3>Watch 用法2：绑定方法</h3>
+      <input v-model="message">
+      <span>{{copyMessage}}</span>
+</div>
+ new Vue({
+        el: '#root2',
+        watch: {
+          message: 'handleMessage'
+        },
+        data() {
+          return {
+            message: 'Hello Vue',
+            copyMessage: ''
+          }
+        },
+        methods: {
+          handleMessage(value) {
+            this.copyMessage = value
+          }
+        }
+      })
+```
+
+### **3.deep+handler**
+
+```javascript
+<div id="root3">
+      <h3>Watch 用法3：deep + handler</h3>
+      <input v-model="deepMessage.a.b">
+      <span>{{copyMessage}}</span>
+</div>
+     new Vue({
+        el: '#root3',
+        watch: {
+          deepMessage: {
+            handler: 'handleDeepMessage',
+            deep: true	//这里注意要设置为true
+          }
+        },
+        data() {
+          return {
+            deepMessage: {
+              a: {
+                b: 'Deep Message'
+              }
+            },
+            copyMessage: ''
+          }
+        },
+        methods: {
+          handleDeepMessage(value) {
+            this.copyMessage = value.a.b
+          }
+        }
+      })
+```
+
+### **4.immediate**
+
+immediate设置了就相当于在执行created函数时候执行了一遍监听器，因此页面刚加载完span的内容就已经发生了改变。
+
+```javascript
+<div id="root4">
+      <h3>Watch 用法4：immediate</h3>
+      <input v-model="message">
+      <span>{{copyMessage}}</span>
+</div>
+new Vue({
+        el: '#root4',
+        watch: {
+          message: {
+            handler: 'handleMessage',
+            immediate: true,
+          }
+        },
+        data() {
+          return {
+            message: 'Hello Vue',
+            copyMessage: ''
+          }
+        },
+        methods: {
+          handleMessage(value) {
+            this.copyMessage = value
+          }
+        }
+      }),
+```
+
+### **5.绑定多个handler**
+
+绑定多个handler有助于更好的处理复杂的监听器逻辑，以下handler函数会依次执行。
+
+```javascript
+<div id="root5">
+      <h3>Watch 用法5：绑定多个 handler</h3>
+      <input v-model="message">
+      <span>{{copyMessage}}</span>
+</div>
+new Vue({
+        el: '#root5',
+        watch: {
+          message: [{
+            handler: 'handleMessage',
+          },
+          'handleMessage2',
+          function(value) {
+            this.copyMessage = this.copyMessage + '...'
+          }]
+        },
+        data() {
+          return {
+            message: 'Hello Vue',
+            copyMessage: ''
+          }
+        },
+        methods: {
+          handleMessage(value) {
+            this.copyMessage = value
+          },
+          handleMessage2(value) {
+            this.copyMessage = this.copyMessage + '*'
+          }
+        }
+      })
+```
+
+### **6.监听对象属性**
+
+这种相当于deep+handler的优化版
+
+```html
+<div id="root6">
+      <h3>Watch 用法6：监听对象属性</h3>
+      <input v-model="deepMessage.a.b">
+      <span>{{copyMessage}}</span>
+</div>
+ new Vue({
+        el: '#root6',
+        watch: {
+          'deepMessage.a.b': 'handleMessage'
+        },
+        data() {
+          return {
+            deepMessage: { a: { b: 'Hello Vue' } },
+            copyMessage: ''
+          }
+        },
+        methods: {
+          handleMessage(value) {
+            this.copyMessage = value
+          }
+        }
+      })
+```
+
+## class和style绑定的高级用法
+
+```html
+    <div id="root">
+      <div :class="['active', 'normal']">数组绑定多个class</div>
+      <div :class="[{active: isActive}, 'normal']">数组包含对象绑定class</div>
+      <div :class="[showWarning(), 'normal']">数组包含方法绑定class</div>
+      <div :style="[warning, bold]">数组绑定多个style</div>
+      <div :style="[warning, mix()]">数组包含方法绑定style</div>
+      <div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }">style多重值</div>
+    </div>
+<script>
+      new Vue({
+        el: '#root',
+        data() {
+          return {
+            isActive: true,
+            warning: {
+              color: 'orange'
+            },
+            bold: {
+              fontWeight: 'bold'
+            }
+          }
+        },
+        methods: {
+          showWarning() {
+            return 'warning'
+          },
+          mix() {
+            return {
+              ...this.bold,
+              fontSize: 20
+            }
+          }
+        }
+      })
+    </script>
+```
+
+## Vue2.6新特性
+
+### vue.observable
+
+vue2.6中添加的新特性，可以理解为vue自带的小型vuex，在应用比较简单时使用它做状态管理即可。
+
+```html
+ <div id="root">
+      {{message}}
+      <button @click="change">Change</button>
+    </div>
+    <script>
+      const state = Vue.observable({ message: 'Vue 2.6' })
+      const mutation = {
+        setMessage(value) {
+          state.message = value
+        }
+      }
+      new Vue({
+        el: '#root',
+        computed: {
+          message() { 
+            return state.message
+          }
+        },
+        methods: {
+          change() {
+            mutation.setMessage('Vue 3.0')
+          }
+        }
+      })
+    </script>
+```
+
+### 插槽v-slot
+
+这里主要介绍的是作用域插槽的用法，以前的写法是`slot-scope`，现在是`v-slot`，另外`v-slot`有个语法糖写法就是直接写`#`。
+
+**1.slot基本用法**
+
+```html
+显示结果为：
+    自定义header1
+    自定义body2	
+<div id="root">
+      <div>案例1：slot的基本用法</div>
+      <Test>
+        <template v-slot:header="{user}">
+          <div>自定义header({{user.a}})</div>
+        </template>
+        <template v-slot="{user}">
+          <div>自定义body({{user.b}})</div>
+        </template>
+      </Test>
+</div>
+<script>
+      Vue.component('Test', {
+        template: 
+          '<div>' +
+            '<slot name="header" :user="obj" :section="\'header\'">' +
+              '<div>默认header</div>' +
+            '</slot>' +
+            '<slot :user="obj" :section="\'body\'">默认body</slot>' +
+          '</div>',
+        data() {
+          return {
+            obj: { a: 1, b: 2 }
+          }
+        }
+      })
+      new Vue({ el: '#root' })
+```
+
+**2.动态slot**
+
+组件还是跟上面一样的模板，因此不重复粘贴
+
+```html
+每次点击因为会将section在header和default之间进行切换，所以当section为header时替换的是具名插槽，当为default时替换的就是默认插槽。
+因此每次点击组件内容将在以下两种间进行切换：
+    this is header
+    默认body
+或者：
+	默认header
+	this is body
+<div id="root2">
+      <div>案例2：Vue2.6新特性 - 动态slot</div>
+      <Test>
+        <template v-slot:[section]="{section}">
+          <div>this is {{section}}</div>
+        </template>
+      </Test>
+      <button @click="change">switch header and body</button>
+</div>
+<script>
+ new Vue({ 
+        el: '#root2',
+        data() {
+          return {
+            section: 'header'
+          }
+        },
+        methods: {
+          change() {
+            this.section === 'header' ?
+              this.section = 'default' :
+              this.section = 'header'
+          }
+        }
+      })
 </script>
 ```
 
