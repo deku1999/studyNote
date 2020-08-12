@@ -103,3 +103,13 @@ resolve: {
 }
 ```
 
+## 配置sass
+
+```html
+<style lang="scss" scoped>
+</style>
+$ npm install node-sass --save-dev
+
+$ npm install sass-loader --save-dev
+```
+

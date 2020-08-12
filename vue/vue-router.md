@@ -223,10 +223,91 @@ this.$route.query.name
 </keep-alive>
 ```
 
-# 导航守卫
+# 路由守卫
 
-- 为了实现点击不同的例如首页，用户，关于而同时更改网页title可以借助导航守卫
-- 给映射关系中再多配置meta属性，然后调用路由前置钩子来实现在跳转的前一步更改标题
+**路由守卫就是路由进行跳转时的一些钩子函数，可以帮助我们进行一系列操作，可以分为全局守卫和局部守卫两种。**
+
+## 全局守卫
+
+以下三个钩子函数按照顺序打印
+
+```javascript
+router.beforeEach((to, from, next) => {
+  console.log('beforeEach', to, from)
+  next()
+})
+
+router.beforeResolve((to, from, next) => {
+  console.log('beforeResolve', to, from)
+  next()
+})
+
+router.afterEach((to, from) => {
+  console.log('afterEach', to, from)
+})
+```
+
+**全部钩子函数的调用顺序**
+
+```javascript
+beforeEach
+beforeRouteEnter
+beforeResolve
+afterEach
+beforeCreate
+created
+beforeMount
+mounted
+```
+
+## 局部守卫
+
+局部守卫是应用在单个组件上的路由生命周期函数。
+
+```javascript
+//该钩子函数获取不到this对象，因为是在created生命周期函数前调用的
+beforeRouteEnter (to, from, next) {		
+  // 不能获取组件实例 `this`
+  console.log('beforeRouteEnter', to, from)
+  next()
+},
+//路由地址更改参数时调用，例如 a?value=b 变成了 a?value=c
+beforeRouteUpdate (to, from, next) {
+  console.log('beforeRouteUpdate', to, from)
+  next()
+},
+//离开该路由地址时调用
+beforeRouteLeave (to, from, next) {
+  console.log('beforeRouteLeave', to, from)
+  next()
+}
+```
+
+**当我们修改路由参数之后重载页面时的钩子函数的调用顺序**
+
+```javascript
+//注意：这时并不会重新再调用组件的生命周期函数
+beforeEach
+beforeRouteUpdate
+beforeResolve
+afterEach
+```
+
+**当我们离开当前路由时的钩子函数调用顺序**
+
+```javascript
+beforeRouteLeave	//组件a的
+beforeEach
+beforeResolve
+afterEach
+beforeDestroy	//组件a的
+beforeCreate	//组件b的
+....
+```
+
+## 案例
+
+为了实现点击不同的例如首页，用户，关于而同时更改网页title可以借助路由守卫。之后给映射关系中再多配置meta属性，然后调用路由前置钩子来实现在跳转的前一步更改标题
 
 ```javascript
 // router/index.js
@@ -252,7 +333,25 @@ router.beforeEach((to,from,next) => {
 })
 ```
 
+# 路由API
 
+使用`router.addRoutes`可以实现动态添加路由。
+
+例如原本的路由配置里可能并没有配置`/b`这个路径，但是在某个组件中通过方法动态添加路由后便可以访问该路径了。
+
+```javascript
+addRoute() {
+    this.$router.addRoutes([{
+      path: '/b', component: B, meta: { title: 'Custom Title B' },
+    }])
+}
+```
+
+此时可以访问到B组件
+
+```html
+<router-link to='/b'>to B</router-link>
+```
 
 # 嵌套路由
 

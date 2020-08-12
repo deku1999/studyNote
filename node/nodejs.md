@@ -1104,6 +1104,18 @@ app.use(function(err,req,res,next) {
 })
 ```
 
+- 配置跨域中间件
+
+```javascript
+npm i -S cors
+const cors = require('cors')
+
+// ...
+app.use(cors())
+```
+
+再次请求即可成功，这里我们在 Network 中会发现发起了两次 https 请求，这是因为由于触发跨域，所以会首先进行 OPTIONS 请求，判断服务端是否允许跨域请求，如果允许才能实际进行请求
+
 # node爬虫技术
 
 ## 传统爬虫
