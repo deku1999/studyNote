@@ -292,7 +292,7 @@ select * from userinfo left join department on userinfo.part_id=department.id
   - 限制个数与区间，limit
 
     ```
-    select * from tb where limit 10		//取出前10条数据
+    select * from tb limit 10		//取出前10条数据
     select * from tb limit 10,20	//取第10条后的20条数据，不包括第10条本身
     select * from tb limit 10 offset 20		//也是取出第10条后的20条数据
     ```

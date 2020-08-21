@@ -113,3 +113,66 @@ $ npm install node-sass --save-dev
 $ npm install sass-loader --save-dev
 ```
 
+## 为开发模式与发布模式指定不同的打包入口
+
+**1.基本介绍**
+
+默认情况下，Vue项目的开发模式与发布模式，共用一个打包的入口文件，即（src/main.js)。为了将项目的开发过程与发不过程分离，我们可以分为两种模式，各自指定打包的入口文件。即：
+
+①开发模式的入口文件为：src/main-dev.js
+
+@发布模式的入口文件为：src/main-prod.js
+
+**2.configureWebpack和chainWebpack**
+
+vue.config.js导出的配置对象中，新增`configureWebpack`和`chainWebpack`节点，来自定义webpack的打包配置。
+
+他俩的作用相同，唯一的区别就是他们修改webpack配置的方式不同：
+
+①chainWebpack通过链式编程的形式，来修改默认的webpack配置。
+
+②configureWebpack通过操作对象的形式，来修改默认的webpack配置。
+
+**3.通过chainWebpack自定义打包入口**
+
+```js
+module.exports = {
+	chainWebpack : config => {
+        config.when(process.env.NODE_ENV === 'production', config => {
+            config.entry('app').clear().add('./src/main-prod.js')
+		})
+        config.when(process.env.NODE_ENV === 'development', config => {
+            config.entry('app').clear().add('./src/main-dev.js')
+		})
+	}
+}
+```
+
+## 优化打包大小
+
+默认情况下打包的文件比较大，我们可以通过externals加载外部CDN资源来优化它。当然一般都是在生产环境时才会用到。
+
+```js
+module.exports = {
+	chainWebpack : config => {
+        config.when(process.env.NODE_ENV === 'production', config => {
+            config.entry('app').clear().add('./src/main-prod.js')
+            config.set('externals', {
+                vue: 'Vue',
+                'vue-router': 'VueRouter',
+                axios：'axios',
+                lodash: '_',
+                echarts: 'echarts',
+                nprogress: 'NProgress',
+                'vue-quill-editor': 'VueQuillEditor'
+            })
+		})
+        config.when(process.env.NODE_ENV === 'development', config => {
+            config.entry('app').clear().add('./src/main-dev.js')
+		})
+	}
+}
+```
+
+之后在public的index.html中利用cdn链接来进行引入
+
