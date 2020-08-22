@@ -176,3 +176,6 @@ module.exports = {
 
 之后在public的index.html中利用cdn链接来进行引入
 
+## 打包路径设置
+
+默认`npm run build`打包后的静态资源文件static是根路径，需要改成相对路径。
