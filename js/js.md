@@ -3,7 +3,7 @@
 ## 高级技巧
 
 - 回调函数的this一般指向window
-- 防抖函数。短时间内频繁进行某个操作时可以设置延迟对它进行防抖处理使得执行的性能更高。
+- 防抖函数。短时间内频繁进行某个操作时可以设置延迟对它进行防抖处理使得执行的性能更高。核心思想是通过闭包保存一个timer变量，一旦在计时器指定间隔以内再执行就重置它
 
 ```javascript
 //这样就对test函数进行了防抖处理，执行test2时以200ms为延迟进行检测
@@ -19,23 +19,20 @@ const test2 = debounce(test,200)
 test2()
 ```
 
-- 节流函数。跟防抖函数类似。节流函数背后的思想是，某些代码不可以在没有间断的情况下连续重复执行。
+- 节流函数。跟防抖函数类似。节流函数背后的思想是，指定时间间隔内只会执行一次任务；通过闭包保存一个布尔值标记变量来判断是否执行，并通过指定时间间隔的定时器来改变它的值。
 
 ```javascript
-//节流函数，第一个参数表示要执行的函数，第二个参数为可选的在哪个作用域执行，不填默认就是window
-function throttle(method, context) {
-	clearTimeout(method.timer)
-	method.timer = setTimeout(function (){
-		method.call(context)
-	},100)
-}
-//实例
-function resizeDiv() {
- 	var div = document.querySelector('#mydiv')
-    div.style.height = div.offsetWidth + "px"
-}
-window.onresize = function() {
-    throttle(resizeDiv)
+//节流函数
+function throttle(func, timeout) {
+    let canRun =  true
+    return function (...args) {
+        if(!canRun) return
+        canRun = false
+        setTimeout(() =>{
+            fn.apply(this,args)
+            canRun = true
+        },timeout)
+    }
 }
 ```
 
@@ -63,7 +60,7 @@ window.onresize = function() {
   //第一个参数是数组，第二个参数是处理函数，第三个参数是可选的函数执行环境
   function chunk(data,process,context) {
   	setTimeout(function() {
-          var item = array.shift()
+          var item = data.shift()
           process.call(context,item)
           if(data.length>0) {
               setTimeout(arguments.callee,100)
@@ -113,7 +110,7 @@ f()  //NAN
 
 - 16进制的前两位是0x。
 - js会将超出数值范围的值自动转换成Infinity或-Infinity，Infinity不能参与数值计算，可以用isFinite(x)来确实值是否有穷。
-- 在js中NaN是用来表示本来要返回数值的值未返回数值的情况可以避免报错。任何涉及NaN的操作都会返回NaN，NaN与任何数都不想等包括NaN本身。采用isNaN（x）可以判断x是否是NaN。
+- 在js中NaN是用来表示本来要返回数值的值未返回数值的情况可以避免报错。任何涉及NaN的操作都会返回NaN，NaN与任何数都不相等包括NaN本身。采用isNaN（x）可以判断x是否是NaN。
 - Number（），parseInt（），parseFloat都可以把非数值转换为数值
   - Number函数可以用于任何数据类型，转换规则较多可参阅P30
   - 后面两个专门用来把字符串转换为数值
@@ -374,20 +371,20 @@ for(item of items) {
 
 #### 字符串类型方法
 
-| 方法                       | 功能                                                         |
-| -------------------------- | ------------------------------------------------------------ |
-| charAt                     | 接收一个基于0的字符位置参数，返回相应的字符                  |
-| charCodeAt                 | 与charAt基本相同，不过返回的是字符编码                       |
-| slice                      | 返回被操作字符串的一个子字符串，接受两个参数，第一个是起始位置，第二个可选参数是结束位置，当然包括头不包括尾，不设置都以末尾作为结束位置，不改变原字符串 |
-| substring                  | 跟slice相同                                                  |
-| substr                     | 跟slice类似，唯一的区别就是第二个参数是截取个数              |
-| indexOf                    | 跟数组的一样不做赘述                                         |
-| lastIndexOf                | 跟数组的一样不做赘述                                         |
-| trim                       | 创建字符串副本，删除前置及后缀的所有空格，然后返回结果       |
-| toLowerCase,toUpperCase    | 大小写转换                                                   |
-| localeCompare              | 比较两个字符串，如果小于返回-1，相等返回0，大于返回1         |
-| match,search,replace,split | 字符串模式匹配，详细参见p127。match方法用于在字符串中提取特定字符，跟exp对象的exec方法基本相同。split用于按照特定规则分割字符串并将结果保存在数组中。serach方法类似indexOf不多介绍。 |
-| replace                    | 替换字符串的特定字符，返回替换后的字符串。例，var str = 'absfacd' var c = str.replace('a','h')，默认只会替换第一个。可以第一个参数传正则表达式来实现全局替换。 |
+| 方法                    | 功能                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| charAt                  | 接收一个基于0的字符位置参数，返回相应的字符                  |
+| charCodeAt              | 与charAt基本相同，不过返回的是字符编码                       |
+| slice                   | 返回被操作字符串的一个子字符串，接受两个参数，第一个是起始位置，第二个可选参数是结束位置，当然包括头不包括尾，不设置都以末尾作为结束位置，不改变原字符串 |
+| substring               | 跟slice相同                                                  |
+| substr                  | 跟slice类似，唯一的区别就是第二个参数是截取个数              |
+| indexOf                 | 跟数组的一样不做赘述                                         |
+| lastIndexOf             | 跟数组的一样不做赘述                                         |
+| trim                    | 创建字符串副本，删除前置及后缀的所有空格，然后返回结果       |
+| toLowerCase,toUpperCase | 大小写转换                                                   |
+| localeCompare           | 比较两个字符串，如果小于返回-1，相等返回0，大于返回1         |
+| match,search,split      | 字符串模式匹配，详细参见p127。match方法用于在字符串中提取特定字符，跟exp对象的exec方法基本相同。split用于按照特定规则分割字符串并将结果保存在数组中。serach方法类似indexOf不多介绍。 |
+| replace                 | 替换字符串的特定字符，返回替换后的字符串。例，var str = 'absfacd' var c = str.replace('a','h')，默认只会替换第一个。可以第一个参数传正则表达式来实现全局替换。 |
 
 ### 单体内置对象
 
@@ -474,7 +471,7 @@ constructor : Person,
 sayName: function() {
 alert(this.name)
 }}
-var person1 =new Person('c','full stach engineer')
+var person1 =new Person('c','full stack engineer')
 ```
 
 #### 其他模式

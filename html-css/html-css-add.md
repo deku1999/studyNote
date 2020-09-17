@@ -121,7 +121,7 @@ br标签一般是用在p标签里进行换行的不要随意使用，一些段�
 ## css层次选择器
 
 - m n(后代选择器，选择的是m元素内所有的n元素）
-- m>n(子代选择器，选择的是m元素内的儿子n元素，注意孙子及往后级别就不算了）
+- m>n(子代选择器，选择的是m元素内的所有儿子n元素，注意孙子及往后级别就不算了）
 - m~n（兄弟选择器，顾名思义选择的是m元素下面的所有兄弟元素n）
 - m+n（相邻选择器，选择的是m元素后面的第一个兄弟n元素，经典选择如li+li{border-top:1px solid #ccc}可以给除了第一个li都添上上border线）
 
@@ -182,7 +182,7 @@ border-radius:Xpx/Ypx,X为width的一半，Y为height一半即可
 
 - 自适应两列布局
 
-div1，div2都设为左浮动，div1宽设为100%，margin-right：-Npx，div2宽设为Npx就可以实现右边固定宽度，左边自适应；
+div1，div2都设为左浮动，div1宽设为100%，margin-right：-Npx，div2宽设为Npx就可以实现右边固定宽度，左边自适应；   
 
 - 元素垂直居中
 
@@ -314,7 +314,7 @@ div1，div2这种display都设置为table-cell，并给其各自设置宽度，�
 
 - 绝对定位元素是相对于外层第一个设置了"position:relative,absolute或者fixed"的祖先元素来进行定位的
 
-- 默认情况下，元素的z-index属性处于不激活状态，也就是说默认情况下，设置元素的z-index属性无效。z-index属性只有在元素定义"position:absolute,relative,fixed"时才会被激活。
+- 默认情况下，元素的z-index属性处于不激-0-活状态，也就是说默认情况下，设置元素的z-index属性无效。z-index属性只有在元素定义"position:absolute,relative,fixed"时才会被激活。
 
 ## css技巧
 
@@ -347,6 +347,8 @@ div1，div2这种display都设置为table-cell，并给其各自设置宽度，�
 ## 层叠上下文
 
 层叠上下文：层叠上下文是html中的一个三维的概念即与z-index属性相关。
+
+`z-index`属性仅在可以定位的元素上生效（relative，absolute,fixed）。
 
 - 层叠上下文创建条件
   - 根元素
