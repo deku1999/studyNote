@@ -9,6 +9,18 @@
   - JSX，俗称JS里面写HTML，JavaScript语法的扩展
   - 组件化，模块化。代码容易复用
   - 单向数据流，没有实现数据的双向绑定。
+- 像`react`这种框架是可以在一个js文件里直接引入css，js等文件的。会有打包工具帮我们处理。
+
+## react中的虚拟DOM
+
+1.  state数据
+2.  JSX模板
+3.  数据 + 模板生成虚拟DOM（虚拟DOM就是一个JS对象，用它来描述真实的DOM）
+4.  用虚拟DOM的结构生成真实的DOM来显示
+5.  state发生变化
+6.  数据 + 模板 生成新的虚拟DOM
+7.  比较原始虚拟DOM和新的虚拟DOM的区别，找到区别的内容
+8.  直接操作DOM，改变区别的内容
 
 ## 创建一个项目
 
@@ -18,6 +30,8 @@
   - 创建项目，`npm init react-app 项目名`，或者`create-react-app 项目名`
 
 ## react Jsx
+
+- 编译`jsx`语法必须要引入`react`
 
 - jsx对象中传递变量一般使用，`{}`这种写法，这里也可以定义一些简单的表达式，类似于三目运算符，简单的+，-，*，/这种。大括号中也可以是jsx对象。例如`let element = (<div>我是测试的。</div>)`，`{man=='测试'?<button>按钮</button>:element`}。
 - 属性和html内容一样都是用{}插入内容。
@@ -29,6 +43,17 @@
 - 注意事项：
   - jsx必须要有根节点
   - 正常的普通HTML元素要小写。如果要大写，默认是组件。
+
+## 一些补充
+
+1. `Fragment`可以充当组件的外围占位符，在需要时避免多余的div包裹。使用
+
+```
+import {Fragment} from 'react'
+```
+
+2. `charles`可以模拟前端mock接口，具体步骤为点击tools，然后点击mapLocal即可
+3. `react-transition-group`是基于react的动画框架，可以在github中找到，通过npm进行安装。这要是使用`CSSTransition`这是针对单个元素的，如果是要对一组元素使用动画，那么要用`TransitionGroup`包裹住一组元素，并在其中使用`CSSTransition`包裹单个元素。
 
 # react元素渲染
 
@@ -64,6 +89,8 @@ setInterval(run,1000)
 ```
 
 # react样式和注释
+
+- 如果要在jsx中写label标签的for，必须写成`<label htmlFor="id名">点我</label>`，因为单纯的for属性会与for循环产生歧义。
 
 - react绑定style，在jsx语法里不能用传统的style写法，类似`style="height:200px;"`
 
@@ -121,9 +148,12 @@ let element = (
 
 # react组件
 
+- react自己定义的组件必须是大写字母开头，不能是小写。
+
 ## 函数式组件
 
 - 函数式组件的名首字母必须要大写，调用的使用要么双尖括号要么单尖括号加/。
+- 当类组件只有`render`函数时可以用函数式组件进行代替。
 
 ```
 //函数式组件定义，并利用props传参，这里props传过来的是个对象，weather是它的一个属性
@@ -167,6 +197,38 @@ document.querySelector('#root'))
 
 - 组件中可以进行嵌套，直接写组件对象即可。
 
+## 组件与props
+
+类似于插槽的作用，动态控制组件中的值
+
+```javascript
+//函数式组件
+function Test(props) {
+	return (
+	<div>{props.name}呵呵</div>)
+}
+//类组件
+class Welcome extends React.Component {
+	render() {
+		return (<div>{this.props.name>呵呵</div>)
+	}
+}
+
+function App() {
+	return (
+	<div>
+		<Test name="哈哈哈"></Test>
+		<Welcome name="嘿嘿嘿"></Welcome>
+	</div>)
+}
+```
+
+## props,state与render函数之间的关系
+
+每当一个组件的`state`或者`props`发生改变的时候，它自己的`render`函数就会被执行一次。
+
+另外，当父组件的render函数调用时，那么子组件的render函数也会被调用。
+
 # react State
 
 - 相当于vue中的data，不过使用方式有区别。
@@ -201,6 +263,31 @@ class Clock extends React.Component {
 }
 ```
 
+- 现在`setState`更合适的写法是括号里传入回调函数
+
+```
+这里的prevState指代的是上一次的state，不是必须传入
+this.setState((prevState) => {
+	return {
+		list: [...prevState.list, prevState.inputValue]
+		inputValue: ''
+	}
+})
+```
+
+`setState`还有第二个参数，是一个回调函数，当`setState`执行完之后进行调用
+
+```
+this.setState((prevState) => {
+	return {
+		list: [...prevState.list, prevState.inputValue]
+		inputValue: ''
+	}
+}, () => {
+	console.log('setState调用完了就调用我了')
+})
+```
+
 # react数据传递
 
 ## 父传子传递数据
@@ -213,7 +300,7 @@ class Clock extends React.Component {
 
 - 调用父元素的函数从而操作父元素的数据，从而实现数据从子元素传递至父元素。
 
-```
+```react
 class FatherCom extends React.Component{
 	constructor(props) {
 		super(props)
@@ -257,6 +344,30 @@ ReactDOM.render(<FatherCom/>,
 document.querySelector('#root'))
 ```
 
+## PropTypes与DefaultProps的应用
+
+通过PropTypes限制传值类型
+
+```react
+TodoItem.js
+import PropTypes from 'prop-types'
+TodoItem.propTypes = {
+    content: PropTypes.string,	//限定为字符串
+    deleteItem: PropTypes.func,		//限定为函数
+    index: PropTypes.number		//限定为数字
+}
+```
+
+通过DefaultProps定义默认传递的值
+
+```react
+TodoItem.defaultProps = {
+	test: 'hello world'
+}
+```
+
+更多细节运用请参阅官网。
+
 # react事件详解
 
 - react绑定事件的命名，是采用驼峰命名法，例如`onClick`。
@@ -266,7 +377,7 @@ document.querySelector('#root'))
 
 - 阻止默认行为需要通过`event.preventDefault()`
 
-### react事件传参
+## react事件传参
 
 - 不传参时默认会传入一个event事件对象，当需要传入参数时要利用箭头函数，因为直接通过括号传参在react中相当于执行了。所以代码如下
 
@@ -396,7 +507,19 @@ class Com extends React.Component {
 }
 ```
 
-# 生命周期
+- 如果有时想让列表渲染出的元素直接被转义，可以按下面这样写
+
+```react
+<ul>
+	{this.state.list.map((item) => {
+		return (<li dangerouslySetInnerHTML = {{__html: item}}></li>)
+	})}
+</ul>
+```
+
+# react生命周期函数
+
+## 基本介绍
 
 - 生命周期即是组件从实例化到渲染到最终从页面中销毁，整个过程就是生命周期，在这生命周期中，我们有许多可以调用的事件，也俗称为钩子函数。
 - 生命周期的3个状态
@@ -404,14 +527,85 @@ class Com extends React.Component {
   - Updating：将数据更新到DOM中
   - Unmounting：将组件移除DOM中
 - 生命周期中的钩子函数（方法，事件）
-  - componentWillMount：组件将要渲染
-  - componentDidMount：组件渲染完毕
-  - componentWillReceiveProps：组件将要接受props数据，查看接收props的数据是什么。
-  - shouldComponentUpdate：组件接收到新的state或者props判断是否更新，返回布尔值。
-    - 这个生命周期函数一旦声明，如果我们希望更新就返回true，否则就返回false。如果声明了却不定义返回值那么就会无法更新，因为默认返回的是undefined。
-  - componentWillUpdate：组件将要更新
-  - componentDidUpdate：组件已经更新
+  - constructor
+  - getDeriverStateFromProps（新版）/componentWillMount（旧版）： 组件将要挂载；只会在第一次挂载的时候被执行。
+  - render
+  - componentDidMount：组件渲染完毕，只会在第一次挂载的时候被执行。
   - componentWillUnmount：组件将要卸载
+  - shouldComponentUpdate：组件接收到新的state或者props判断是否更新，返回布尔值。组件被更新之前，他会自动被执行。
+    - 这个生命周期函数一旦声明，如果我们希望更新就返回true，否则就返回false。如果声明了却不定义返回值那么就会无法更新，因为默认返回的是undefined。
+  - componentWillUpdate（旧版）：组件被更新之前，它会自动执行，但是如果shouldComponentUpdate返回true它才会执行，否则就不会。
+  - render
+  - getSnapshotBeforeUpdate（新版）
+  - componentDidUpdate：组件已经更新
+- 一个特殊的`componentWillReceiveProps`生命周期函数。它的执行必须要满足  
+  - 所在组件必须要用父组件接受参数
+  - 如果这个组件第一次存在于父组件中，不会执行。
+  - 如果这个组件之前已经存在于父组件中，才会执行。
+
+```javascript
+例如：
+正常页面加载顺序
+constructor
+getDeriverStateFromProps
+render
+componentDidMount
+
+改变页面state数据
+getDeriverStateFromProps
+shouldComponentUpdate
+render
+getSnapshotBeforeUpdate
+componentDidUpdate
+
+组件卸载
+componentWillUnmount
+```
+
+## 图解
+
+<img src="C:\Users\22140\Desktop\web-study\note\assets\img\image-20201019125452856.png" alt="image-20201019125452856" style="zoom:200%;" />
+
+## 实际应用
+
+1. 例如当父组件数据一更新子组件的render也会被调用，可以通过`shouldComponentUpdate`来优化
+
+```
+shouldComponentUpdate(nextProps, nextState) {
+	if(nextProps.content !== this.props.content){
+		return true
+	}else {
+		return false
+	}
+}
+```
+
+2. 网络请求最好是放在`componentDidMount`里，放在别的生命周期函数里会产生或多或少的问题。
+
+# ref绑定Dom对象
+
+react推荐尽量不要直接操作dom，因为可能会出现一些意料之外的错误。
+
+- 第一种
+
+```
+this.state = {
+	textInput:React.createRef()
+}
+<input ref = {this.state.textInput}>
+```
+
+这样直接通过`this.state.textInput.current`就可以获取dom元素对象。
+
+- 第二种
+
+ref是一个回调函数，参数起名随意
+
+```
+<input ref = {(input) => {this.input = input}} >
+```
+
+这样组件内`this.input`就指向该input dom元素。
 
 # 表单
 
@@ -427,10 +621,38 @@ changeEvent(e) {
 }
 ```
 
+# 高阶组件
+
+高阶组件就是一个函数，这个函数的参数是一个组件，并且能够返回一个组件。本质上就是对组件的加工
+
+```javascript
+例如
+function A(props) {
+	return (
+	<div>
+		<h1>{props.user.name + props.user.age}</h1>
+	</div>)
+}
+function B(props) {
+	return (
+	<div>
+		<h2>{props.user.name + props.user.age}</h2>
+	</div>)
+}
+function Parent(Componenet) {
+    let user = {name: 'hehe', age: 18}
+    return ()=> <Component user= {user}/>	//注意这里因为要返回的是组件所以写成函数式组件形式
+}
+之后
+let highA = Parent(A)
+let highB = Parent(B)
+就可以得到两个加工后的组件
+```
+
 # react的ajax案例
 
 - 这里仅补充一下，axios既可以用来在node中，也可以用在前端中。不过是前端`import`导入，后端`require`导入。
-  - 后端的axios我感觉一般是用来做跨域访问的。例如前端请求`/news`路径，而后端针对这个路径又要去请求`https://xxxx.com/news`。
+  - 后端的axios一般是用来后端请求数据的。例如前端请求`/news`路径，而后端针对这个路径又要去请求`https://xxxx.com/news`。
 
 # react插槽
 
@@ -565,12 +787,12 @@ let meobj = {
 
 - 动态路由
 
-```
+```javascript
 <Link to="news/45678">新闻</Link>
 <Route path="/news/:id" component={News}></Route>
 function News(props) { 
 		return(
-		<div>props.match.params.id</div>
+		<div>props.match.params.id</div>	//获取到id
 		)}
 ```
 
@@ -622,6 +844,8 @@ clickEvent = (e)=>{
 
 # redux
 
+## 介绍
+
 - 解决React数据管理，用于中大型，数据比较庞大，组件之间数据交互多的情况下使用。
   - 解决组件的数据通信
   - 解决数据和交互较多的应用
@@ -631,138 +855,300 @@ clickEvent = (e)=>{
   - Action：一个动作，触发数据改变的方法。
   - Dispatch：将动作触发成方法
   - Reducer：是一个函数，通过获取动作改变数据。生成一个新state，从而改变页面
-
 - 安装，`npm install redux --save`。
+- 图解
+
+![image-20201019160523479](C:\Users\22140\Desktop\web-study\note\assets\img\image-20201019160523479.png)
+
+可以把这几个想象成
+
+ReactComponent：借书人
+
+ActionCreators：我要说的话，例如要借什么书，要改哪本书
+
+Store：图书馆的管理员，负责管理图书但是不知道具体的图书在哪，只能通过reducer这个笔记本。
+
+Reducers：笔记本。
 
 ## 基本使用
 
+1. 新建store文件夹，并新建`index.js`文件创建并导出store，`reducer.js`文件创建并导出reducer函数，用来初始化state和action
+
+```javascript
+//reducer.js
+const defaultState = {		//初始的数据，也可以是空对象
+	inputValue: '123',
+	list: [1, 2]
+}
+export default (state = defaultState, action) => {
+	return state
+}
+
+//index.js
+import {createStore} from 'redux'
+import reducer from './reducer'
+const store = createStore(reducer)	//通过reducer创建store
+export default store
 ```
-import Redux,{createStore} from 'redux'
-//用于通过动作创建新的state
-//reduce有2个作用，一是初始化数据，第二个就是通过获取动作，改变数据
-const reducer = function(state={num:0},action) {
-	switch(action.type) {
-		case 'add':
-			state.num++
-			break
-		case 'decrement':
-			state.num--
-			break
+
+2. 组件内使用，引入store，store本身有一个`getState`方法可以获取state数据，例如
+
+```javascript
+import store from './store/index'
+...{
+	this.state = store.getState()	//state会获得reducer里的数据
+}
+```
+
+## action和reducer的编写
+
+当需要改变state数据时需要编写action
+
+1.  创建action，必需要有type属性，然后也可以传递额外参数
+
+2.  通过dispatch将action传递给store
+
+   ```javascript
+   handleInputChange(e) {
+   	const action = {
+   		type: 'change_input_value',
+   		value: e.target.value
+   	}
+   	store.dispatch(action)	//传递action
+   }
+   ```
+
+3.  store自动把action传递给reducer，reducer根据action的类型改变并返回新state
+
+```javascript
+//reducer.js
+reducer 可以接受state，但是绝不能修改state，所以才要进行拷贝修改
+export default (state === defaultState, action) => {
+	if(action.type === 'change_input_value') {
+		const newState = JSON.parse(JSON.stringify(state))	//复制一份数据
+        newState.inputValue = action.value
+        return newState
 	}
-	return {...state}
+    return state 
 }
-//创建仓库
-const store = createStore(reducer)
-function add() {
-	store.dispatch({type:'add'})
+```
+
+4.  组件内通过subscribe监视store的改变，只要store一改变就会自动调用，然后通过该回调函数可以改变页面数据
+
+```javascript
+..
+constructor(props) {
+	this.handleStoreChange = this.handleStoreChange.bind(this)
+	store.subscribe(this.handleStoreChange)	//store一改变自动调用的函数
 }
-function decrement() {
-	store.dispatch({type:'decrement'})
+handleStoreChange() {
+    this.setState(() => {
+       return store.getState()
+    })
 }
-//获取数据
-let state = store.getState()
-//修改数据(通过动作修改数据)
-//通过仓库的dispatch方法进行修改，可以传递额外的参数
-store.dispatch({type:'add'},content:{id:1,msg:'helloworld'})
-//修改视图（监听数据的变化，重新渲染内容
-store.subscribe(()=> {
-	ReactDOM.render(<Counter/>,document.querySelector('#root'))
+```
+
+## redux编写优化
+
+### ActionTypes的拆分
+
+为了防止action书写出错，我们可以在store文件夹下新建`actionTypes.js`文件，就是用常量代替变量，可以避免出错。
+
+```javascript
+export const CHANGE_INPUT_VALUE = 'change_input_value'
+....
+```
+
+然后分别在`reducer.js`和组件中引入该文件，用常量代替变量。
+
+### 使用actionCreator统一创建action
+
+在store文件夹下新建`actionCreators.js`文件，从`actionTypes.js`文件中导入常量，编写函数
+
+```javascript
+import {CHANGE_INPUT_VALUE} from './actionTypes'
+export const getInputChangeAction = (value) => ({
+	type: CHANGE_INPUT_VALUE,
+	value
 })
 ```
 
+之后组件中导入需要的函数调用即可
+
+```javascript
+import {getInputChangeAction} from 'actionCreators'
+...
+const action = getInputChangeAction(value)
+```
+
+## redux进阶
+
+### 什么是redux中间件
+
+redux中间件就是对store的`dispatch`方法进行升级，以前只能接收对象，现在可以接收函数了。还有很多别的中间件
+
+![image-20201020114309258](C:\Users\22140\Desktop\web-study\note\assets\img\ReduxDataFlow.png)
+
+### 使用redux-thunk中间件实现ajax数据请求
+
+直接在github搜`redux-thunk`即可详细了解
+
+1. 安装`npm install redux-thunk --save`
+2. 在redux中引入`applyMiddleware`，从redux-thunk中引入thunk，创建store时传入参数
+
+```javascript
+import {createStore, applyMiddleware} from 'redux'
+import thunk from 'redux-thunk'
+const store = createStore(reducer,
+	applyMiddleware(thunk)
+)
+
+因为redux_devtools也是中间件，并且也要传入，所以有一种特殊的写法，参照下面
+import {compose} from 'redux'
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?   window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({}) : compose;
+
+const enhancer = composeEnhancers(
+  applyMiddleware(thunk),	//如果是多个中间件，就一个个写进去
+);
+const store = createStore(reducer, enhancer);
+```
+
+3. 当你使用了这个中间件后，action就可以不是一个对象而是一个函数，从而可以在其中写异步的代码，这时候再通过`store.dispatch(action)`可以执行该函数，且该函数会默认传入dispatch方法，因此可以在函数中通过`dispatch`去修改state的值。
+
+```javascript
+//actionCreators.js
+export const initListAction = (data) => ({
+	type: INIT_LIST_ACTION,
+	data	
+})
+export const getTodoList = () => {
+	return (dispatch) => {
+		axios.get('./list.json').then((res) => {
+			const data = res.data
+			cosnt action = initListAction(data)
+			dispatch(action)
+		})
+	}
+}
+//组件中
+import {getTodoList} from './store/actionCreators'
+...
+componentDidMount() {
+    const action = getTodoList()
+    store.dispatch(action)
+}
+```
+
+### redux-saga中间件使用
+
+github也可以直接搜索到它了解详情，使用了它之后`store.dispatch(action)`就不止reducer可以接收到，sagas也可以接收到。
+
+1. 安装`npm install redux-saga --save`
+2. 导入并使用
+
+```javascript
+import { createStore, applyMiddleware } from 'redux'
+import createSagaMiddleware from 'redux-saga'	//导入创建saga中间件的方法
+import mySaga from './sagas'	//导入自己的saga文件
+// create the saga middleware
+const sagaMiddleware = createSagaMiddleware()
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?   window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({}) : compose;
+const enhancer = composeEnhancers(
+  applyMiddleware(sagaMiddleware),	//如果是多个中间件，就一个个写进去
+);
+
+// mount it on the Store
+const store = createStore(
+  reducer,
+  enhancer
+)
+
+sagaMiddleware.run(mySaga)	//运行自己的saga
+```
+
+3. 在store文件夹下新建`sagas.js`文件用来存放异步逻辑
+
+```javascript
+import {takeEvery, put} from 'redux-saga/effects'
+import {GET_INIT_LIST} from './actionTypes'		//导入自己的action的type名
+import {initListAcion} from './actionCreators'
+//异步请求一般就会写在该回调函数里，注意generator函数里异步请求不要使用promise这种形式
+//为了防止网络请求失败，最好做try,catch异常处理
+function* getInitList() {
+    try {
+    cosnt res = yield axios.get('./list.json')
+    const action = initListAction(res.data)
+    yield put(action)
+    }
+	catch(e) {
+        console.log('请求失败')
+    }
+}
+function* mySaga() {
+    //监听action，一旦GET_INIT_LIST这种action发出那么就会自动自动调用getInitList方法
+	yield takeEvery(GET_INIT_LIST, getInitList)		
+}
+export default mySaga
+```
+
+### ui组件和容器组件
+
+就是避免一个组件过于紊乱，然后将其分为ui组件和容器组件，ui组件就只负责页面显示，容易组件存放数据，函数等，然后通过props传递给ui组件。
+
 ## react-redux
 
-- 安装，`npm install react-redux --save`。
-- Provider组件：自动的将store里的state和组件进行关联
+是为了简化`redux`的使用过程而产生的，store文件夹下的`index.js`和`reducer.js`不用动，主要是根组件以及使用组件的变化
 
-```
-import {createStore} from 'redux'
-import {Provider,connect} from 'react-redux'
-class Counter extends React.Component {
-	render() {
-		//计数，通过store的state传给props，直接通过props就可以将state的数据获取
-		{value} = this.props
-		//将修改数据的事件或者方法传入到props，等同于vuex的mapMutation mapStte
-		const onAddClick = this.props.onAddClick
-		return (
-			<div>
-				<h1>计数的数量：{value}</h1>
-				<button onClick={onAddClick}>数字+1</button>
-			</div>
-		)
-	}
-}
-const addAction = {
-	type: 'add'
-}
-function reducer(state={num:0},action) {
-		switch(action.type) {
-		case 'add':
-			state.num++
-			break
-		case 'decrement':
-			state.num--
-			break
-	}
-	return {...state}
-}
-const store = createStore(reducer)
-//将state映射到props函数
-function mapStateToProps(state) {
-	return {
-		value: state.num
-	}
-}
-//将修改state数据的方法，映射到props，默认会传入store里的dispatch方法
-function mapDispatchToProps(dispatch) {
-	return {
-		onAddClick: ()=>{dispatch(addAction)}
-	}
-}
-//将上面的这2个方法，将数据仓库的state和修改state的方法映射到组件上，形成新的组件
-const App = connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Counter)
-ReactDOM.render(
-	<Provider store={store}>
-		<App</App>
-	</Provider>
-,document.querySelector('#root'))
+1. 安装，`npm install react-redux --save`
+2. 在根组件index.js中导入并使用
+
+```react
+import {Provider} from 'react-redux'
+import store form './store/index'
+import TodoList from './TodoList'
+const App = (
+	<Provider store = {store}>
+        //将需要使用react-redux的组件包裹在provider中，这样它里面的所有组件都可以获取store里面的数据
+        <TodoList></TodoList>	
+    </Provider>
+)
+ReactDom.render(App, document.getElementByID('root'))
 ```
 
-- 如果有多个action方法，为了避免那么多的swtich，有下面这种比较简洁的写法
+3. 在需要的组件中进行使用。将组件与store进行连接，并有自己的连接方式
 
-```
-let actionObj = {
-	'add':function (state,action) {
-		state.num++
-		return state
-	},
-	'addNum':function (state,action) {
-		state.num = state.num + action.num
-		return state
-	}
+```react
+import connect from 'react-redux'
+class TodoLIst extends Component {
+    ..
 }
-function reducer(state={num:0},action) {
-	if(action.type.indexOf('redux')!===-1) {
-		state = actionObj[action.type](state,action)
-		return {...state}
-	}
-	else{
-		return state
-	}
+//将state中的数据映射到组件的props中
+const mapStateToProps = (state) => {
+    return {
+        //这样我们组件中就可以通过this.props.inputValue获取数据了
+        inputValue: state.inputValue	
+    }
 }
+//将改变state行为的dispatch映射到props中，这里的dispatch就等于store.dispatch
+const mapDispatchToProps = (dispatch) => {
+    return {
+        //这样组件中通过this.props.handleInputChange就可以调用该方法了从而改变state
+        //当然reducer中还是要根据action的type值来进行处理
+        handleInputChange(e) {
+            const action = {
+                type: 'input_value_change',
+                value: e.target.value
+            }
+            dispatch(action)
+        }
+    }
+}
+//让我们的TodoList组件和store做连接，因为我们的组件在provider中，因此可以连接
+export default connect(mapStateToProps, mapDispatchToProps)(TodoList)	
 ```
 
 # reactUI
 
 - 这里仅介绍一个代码，`npm run eject`，可以详细展开package.json里的配置代码，进而去配置一些信息。
 - ui库，react有`ant design`，`ant design mobile`分别对应移动端和网页端。
-
-# 项目总结
-
-- 数据导入
-  - 利用navcat，先创建数据库，然后导入文件，选择json文件，一直下一步即可
-- 服务端
-  - 这里利用node和mysql来做
