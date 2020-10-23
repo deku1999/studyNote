@@ -55,6 +55,16 @@ import {Fragment} from 'react'
 2. `charles`可以模拟前端mock接口，具体步骤为点击tools，然后点击mapLocal即可
 3. `react-transition-group`是基于react的动画框架，可以在github中找到，通过npm进行安装。这要是使用`CSSTransition`这是针对单个元素的，如果是要对一组元素使用动画，那么要用`TransitionGroup`包裹住一组元素，并在其中使用`CSSTransition`包裹单个元素。
 
+4. 如果有时想让列表渲染出的元素直接被转义，可以按下面这样写，用`dangerouslySetInnerHTML`
+
+```react
+<ul>
+	{this.state.list.map((item) => {
+		return (<li dangerouslySetInnerHTML = {{__html: item}}></li>)
+	})}
+</ul>
+```
+
 # react元素渲染
 
 - render函数与基本的jsx写法
@@ -505,16 +515,6 @@ class Com extends React.Component {
 		</div>
    )
 }
-```
-
-- 如果有时想让列表渲染出的元素直接被转义，可以按下面这样写
-
-```react
-<ul>
-	{this.state.list.map((item) => {
-		return (<li dangerouslySetInnerHTML = {{__html: item}}></li>)
-	})}
-</ul>
 ```
 
 # react生命周期函数
@@ -997,7 +997,7 @@ redux中间件就是对store的`dispatch`方法进行升级，以前只能接收
 2. 在redux中引入`applyMiddleware`，从redux-thunk中引入thunk，创建store时传入参数
 
 ```javascript
-import {createStore, applyMiddleware} from 'redux'
+import {createStore, applyMiddleware, compose } from 'redux'
 import thunk from 'redux-thunk'
 const store = createStore(reducer,
 	applyMiddleware(thunk)
@@ -1096,12 +1096,12 @@ export default mySaga
 
 就是避免一个组件过于紊乱，然后将其分为ui组件和容器组件，ui组件就只负责页面显示，容易组件存放数据，函数等，然后通过props传递给ui组件。
 
-## react-redux
+### react-redux
 
-是为了简化`redux`的使用过程而产生的，store文件夹下的`index.js`和`reducer.js`不用动，主要是根组件以及使用组件的变化
+是为了简化`redux`的使用过程而产生的，是在`redux`存在的基础上存在的，store文件夹下的`index.js`和`reducer.js`不用动，主要是根组件以及使用组件的变化
 
 1. 安装，`npm install react-redux --save`
-2. 在根组件index.js中导入并使用
+2. 在比较根的组件例如index.js中导入并使用
 
 ```react
 import {Provider} from 'react-redux'
@@ -1146,6 +1146,75 @@ const mapDispatchToProps = (dispatch) => {
 }
 //让我们的TodoList组件和store做连接，因为我们的组件在provider中，因此可以连接
 export default connect(mapStateToProps, mapDispatchToProps)(TodoList)	
+```
+
+### 使用combineReducers完成对数据的拆分
+
+当reducer数据过多时，可以利用combineReducers进行拆分
+
+```javascript
+import {combineReducers} from 'redux'
+import headerReducer from '../common/header/store/reducer'	//导入小reducer
+const reducer = combineReducers({
+	header: headerReducer	//这里header属性名可以随意起
+})
+export default reducer
+```
+
+注意当这样拆分后，如果想用`react-redux`，那么创建`mapStateToProps`时回调函数应该是`state.header.属性名`。
+
+### immutable.js来管理store中的数据
+
+因为reducer不能直接修改state，但是难免有时会忘记，因此可以用`immutable`。
+
+**注意immutable类型的数组不支持直接通过下标获取元素，只能变相进行类型转换。**`const jsList = list.toJS()`
+
+1. `npm install immutable --save`
+2. 引入使用
+
+```javascript
+// reducer.js
+import {fromJS} from 'immutable'
+//通过fromJS函数生成一个immutable对象
+const defaultState = fromJS({
+	focused: false
+})
+```
+
+3. 当使用了`immutable`之后就不能在组件中直接通过`state.属性名`获取数据了，需要通过`state.get('属性名')`来获取，另外reducer.js文件中要返回成下面这种
+
+```javascript
+//reducer.js
+export default (state = defaulteState, action) => {
+    if(action.type === ...) {
+       // 如果特别多可以用merge，例如
+       		return state.merge({
+       			list: action.data,
+       			totalPage: action.totalPage
+       		})
+      //  如果有多个属性要设置可以进行链式调用set
+       		return state.set('属性名',属性值)		
+      		}
+    return state
+}
+```
+
+4. immutable类型的数组没有`length`属性，只有`size`属性。
+
+### 使用redux-immutable来统一数据格式
+
+这个包一般是当自己拆分了reducer后使用，因为通过`state.header.get('属性名')`很不一致，我们要达到`state.get('header').get('属性名')`的效果
+
+1. `npm install redux-immutable --save`
+2. store文件夹下的index.js文件中的`combineReducers`由`redux-immutable`生成
+
+```javascript
+import {combineReducers} from 'redux-immutable'
+import headerReducer from '../common/header/store/reducer'	//导入小模块reducer
+const reducer = combineReducers({
+	header: headerReducer	//这里header属性名可以随意起
+})
+export default reducer
 ```
 
 # reactUI
