@@ -442,6 +442,7 @@ text-stroke:宽度值 颜色值；小技巧，将字体颜色透明再设置描�
 
 - translate（）
 - 有translateX(x)方法，translateY(y)方法，translate(x,y)方法，前两个不用多说，x为正向右反之相反，y为正向下反之相反，最后一个方法y是缺省值，如果不设置表示只沿x轴进行移动
+- translate3d(x，y，z)，第三个参数传入正或者负代表在z轴的偏移，会有层次感。
 
 ### 缩放
 
@@ -570,3 +571,51 @@ ease-in-out（先加速后减速，称为渐显渐隐效果），
 | backwards | 在 animation-delay 所指定的一段时间内，在动画显示之前，应用开始属性值（在第一个关键帧中定义） |
 | both      | 元素动画同时具有forwards和backwards效果                      |
 
+### 实际使用
+
+#### **关于时间函数:**
+
+1.可以去控制台拖动函数曲线得到我们想要的`cubic-bezier`值
+
+2.还有一种非线性时间函数叫`steps`，它是将一个帧拆成特定的步数然后去均匀执行。典型的例如loading动画或者连环画。
+
+```css
+// 这样就是1帧拆成12步
+animation: round 1s steps(12) infinite;
+@keyframes round {
+	%100{
+		transform: rotate(360deg);
+	}
+}
+// 这样就是2帧，每帧12一共24个
+@keyframes round {
+    %50 {
+        transform: rotate(180deg);
+    }
+	%100{
+		transform: rotate(360deg);
+	}
+}
+```
+
+#### **实用小贴士：**
+
+1.display不能和transition一起使用
+
+2.transition后面尽量不要跟all
+
+3.常见闪动我们可以 perspective和backface-visibility
+
+#### **动画状态的监听和思考**
+
+animation一共有三种事件：
+
+`animationstart`：监听动画开始
+
+``animationend`：监听动画结束
+
+`animationiteration`：监听动画持续，每播放一次触发一次
+
+transition是一种事件：
+
+`transitionend`：过度属性结束时触发
