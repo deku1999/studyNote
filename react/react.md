@@ -239,6 +239,20 @@ function App() {
 
 另外，当父组件的render函数调用时，那么子组件的render函数也会被调用。
 
+## 组件优化
+
+React.PureComponent 与 React.Component 几乎完全相同，但 React.PureComponent 通过props和state的浅对比来实现 shouldComponentUpate()。
+
+### PureComponent区别点：
+
+**PureComponent缺点**
+
+可能会因深层的数据不一致而产生错误的否定判断，从而shouldComponentUpdate结果返回false，界面得不到更新。
+
+**PureComponent 优势**
+
+不需要开发者自己实现shouldComponentUpdate，就可以进行简单的判断来提升性能。
+
 # react State
 
 - 相当于vue中的data，不过使用方式有区别。
